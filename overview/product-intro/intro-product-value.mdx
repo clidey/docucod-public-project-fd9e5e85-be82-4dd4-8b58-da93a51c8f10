@@ -1,0 +1,70 @@
+---
+title: "What is Task?"
+description: "Task is a modern, user-friendly task runner and build tool designed to be simpler and easier than traditional tools like GNU Make. By using human-readable YAML files (Taskfiles), it enables developers to automate build, test, and project automation tasks with minimal friction."
+---
+
+## What is Task?
+
+Task is a modern, intuitive task runner and build tool designed to simplify how developers automate their workflows. Instead of wrestling with complex scripts or traditional tooling configurations, Task enables users to define automation steps using human-readable YAML files called Taskfiles. This approach streamlines tasks such as building projects, running tests, or managing deployments, all while reducing setup friction and enhancing clarity.
+
+At its core, Task helps developers move faster by abstracting away the boilerplate and quirks of traditional build systems. This empowers teams to focus on defining *what* needs to be done rather than *how* it should be orchestrated manually.
+
+## Who Benefits from Using Task?
+
+Task is crafted for developers and teams seeking a straightforward yet powerful way to codify their automation processes. Whether you maintain a simple script-based project or coordinate complex workflows across multiple environments, Task scales gracefully while maintaining ease of use.
+
+Its audience ranges from individual developers who want to automate routine commands without overhead, to larger projects that rely on reproducible, well-defined task pipelines. Task is also suitable for cross-platform use, supporting automation on Linux, macOS, and Windows with consistent behavior.
+
+## How Task Simplifies Automation
+
+Task operates by interpreting Taskfiles that contain declarative descriptions of automation tasks. Each task typically includes a series of commands to execute, variables to customize behavior, dependencies for ordering complex chains of operations, and conditionals for platform-aware or state-aware executions.
+
+Users leverage templating in Taskfiles to dynamically insert variables and control flow, enabling highly reusable and flexible configurations. This composability means you can create modular tasks that call one another with context-specific parameters, streamlining even intricate automation patterns.
+
+The tool manages variable scopes, environment isolation, and incremental task skipping automatically. It also supports advanced features like file watching, fingerprinting of source and generated files, and internal task organization to optimize repeated runs and safeguard task dependencies.
+
+Taskfile AST and variable handling provide the underlying abstraction, ensuring variables—whether static or dynamic—are properly managed and evaluated during task execution. This design promotes reliability and precise control over task outcomes.
+
+<Source url="https://github.com/go-task/task" branch="main" paths={[{path: "taskfile/ast/vars.go", range: "1-100"}, {path: "compiler.go", range: "15-110"}]} />
+
+## Real-World Use Cases of Task
+
+Imagine you are managing a software project with multiple build steps: compiling code, packaging releases, running tests, and deploying artifacts. Task lets you define each step as an independent task that can be composed and parameterized. For example, you might have a `build` task that depends on `compile` and `test`. Running `task build` automatically ensures all prerequisites run in the correct order.
+
+Dynamic variables enable retrieving up-to-date environment data or version information on the fly. For instance, a variable executing `git log -n 1 --format=%h` can inject the latest commit hash for embedding in builds.
+
+Moreover, Task's templating facilitates conditional commands and iterations, such as looping over lists of files or configuration variations, making it suitable for CI/CD pipelines and multi-platform projects.
+
+Here’s a snippet illustrating a simple task calling another with a variable:
+
+```yaml
+version: '3'
+tasks:
+  greet:
+    vars:
+      NAME: 'World'
+    cmds:
+      - echo "Hello, {{.NAME}}!"
+
+  welcome:
+    cmds:
+      - task: greet
+        vars:
+          NAME: 'Developer'
+```
+
+Running `task welcome` prints "Hello, Developer!", showing variable overriding and task chaining.
+
+## Getting Started with Task
+
+To begin using Task, install it following the [Installation Guide](/getting-started/onboarding-essentials/prerequisites-installation). Initializing a project is simple:
+
+```shell
+task --init
+```
+
+This creates a basic `Taskfile.yml` that you can customize. From here, define your tasks with clear commands and variables tailored to your workflows. Explore the [Getting Started Guide](/getting-started/onboarding-essentials/initial-configuration-setup) for detailed instructions.
+
+As you grow more comfortable, expand your Taskfiles with includes, conditional execution, and environment management. Consult the [Templating Reference](/reference/templating) to harness the full power of dynamic variable interpolation.
+
+With Task, automating common development operations becomes effortless, maintainable, and consistent across teams and environments.
