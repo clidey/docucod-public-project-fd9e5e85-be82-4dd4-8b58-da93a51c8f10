@@ -1,0 +1,199 @@
+---
+title: "Automating with Matrix & For-Loops"
+description: "Step through examples of leveraging Task's matrix and looping features to execute parameterized or repetitive automation sequences. Ideal for CI builds, test matrices, or bulk operations."
+---
+
+# Automating with Matrix & For-Loops
+
+Task empowers users to perform repetitive and parameterized automation tasks efficiently through its matrix and for-loop features. This page delves specifically into using these mechanisms within your task definitions to iterate over lists, matrices of variables, and other collections, driving dynamic and concise task executions that scale with your input complexity. Whether constructing multi-platform builds, running test matrices, or processing bulk items, understanding these looping capabilities significantly magnifies your automation potential.
+
+## Understanding Looping with For-Loops and Matrices
+
+Looping in Task is primarily achieved using the `for` property within commands or dependencies, allowing you to execute a command or task repeatedly over a defined set of values. This iterative approach can be simple, like looping over a static list, or advanced, traversing all combinations represented by a matrix of variables.
+
+A **matrix** represents an ordered collection of keys, each mapping to a list of values. Task runs the Cartesian product of these lists to generate all permutations, which is ideal for scenarios like testing across multiple operating systems and architectures in one go.
+
+For example, a task looping over the matrix of OS and architecture looks like this:
+
+```yaml
+cmds:
+  - for:
+      matrix:
+        OS: ["windows", "linux", "darwin"]
+        ARCH: ["amd64", "arm64"]
+    cmd: echo "{{.ITEM.OS}}/{{.ITEM.ARCH}}"
+```
+
+This runs a command for each combination, producing outputs such as `windows/amd64` and `darwin/arm64`.
+
+You can also reference existing variables within a matrix using the `ref` key, which helps reuse global or task variables when building your matrix dynamically.
+
+Beyond matrices, `for` supports looping over any list-like input, including:
+- Explicit arrays or lists
+- Task sources or generated files
+- Variables split by delimiters
+- Outputs of shell commands
+
+This flexibility makes it straightforward to drive a command or dependency over a broad set of inputs without duplicative Taskfile entries.
+
+## Practical Examples to Drive Automation
+
+The following examples show how to harness `for` and matrices effectively.
+
+### Loop over a simple static list
+
+You can quickly perform an operation on a fixed set of values:
+
+```yaml
+tasks:
+  loop-explicit:
+    cmds:
+      - for: ["a", "b", "c"]
+        cmd: echo "{{.ITEM}}"
+```
+
+Here, the command runs three times, once for each letter.
+
+### Loop over a matrix of variables
+
+Creating combinations of parameters lets you automate complex matrix-style builds or tests:
+
+```yaml
+tasks:
+  loop-matrix:
+    cmds:
+      - for:
+          matrix:
+            OS: ["windows", "linux", "darwin"]
+            ARCH: ["amd64", "arm64"]
+        cmd: echo "{{.ITEM.OS}}/{{.ITEM.ARCH}}"
+```
+
+### Matrix with variable references
+
+To keep your Taskfile DRY, you can reference globally defined arrays:
+
+```yaml
+vars:
+  OS_VAR: ["windows", "linux", "darwin"]
+  ARCH_VAR: ["amd64", "arm64"]
+
+tasks:
+  loop-matrix-ref:
+    cmds:
+      - for:
+          matrix:
+            OS:
+              ref: .OS_VAR
+            ARCH:
+              ref: .ARCH_VAR
+        cmd: echo "{{.ITEM.OS}}/{{.ITEM.ARCH}}"
+```
+
+### Handling errors in matrix references
+
+Matrix keys must resolve to lists. If a reference points to a non-list variable, Task produces a clear error:
+
+```yaml
+# Incorrect reference example
+matrix:
+  OS:
+    ref: .OS_VAR
+  ARCH:
+    ref: .NOT_A_LIST  # Causes "matrix reference must resolve to a list" error
+```
+
+This enforces type discipline so your loops behave predictably.<Source url="https://github.com/go-task/task" branch="main" paths={[{"path": "taskfile/ast/matrix.go", "range": "1-91"}]} />
+
+### Iterating over sources or generated files
+
+Instead of hardcoding files, you can loop over the task’s sources or generates list:
+
+```yaml
+sources:
+  - foo.txt
+  - bar.txt
+cmds:
+  - for: sources
+    cmd: cat "{{.ITEM}}"
+```
+
+If you specify globs like `"*.txt"`, the loop iterates over all matching files, making your automation responsive to your workspace contents.
+
+### Looping over variable values with splitting
+
+Strings can be split on custom delimiters to loop through each item. For example:
+
+```yaml
+vars:
+  FILES: "foo.txt,bar.txt"
+cmds:
+  - for:
+      var: FILES
+      split: ","
+    cmd: cat "{{.ITEM}}"
+```
+
+This runs the command for each file name extracted from the comma-delimited string.
+
+### Running tasks with dynamic looping
+
+Looping applies not only to commands but also to task invocations:
+
+```yaml
+tasks:
+  default:
+    cmds:
+      - for: ["foo.txt", "bar.txt"]
+        task: process-file
+        vars:
+          FILE: "{{.ITEM}}"
+
+  process-file:
+    cmds:
+      - echo "Processing {{.FILE}}"
+```
+
+This pattern enables repeated execution of a task with each input item as a variable.
+
+## Best Practices and Pitfalls to Avoid
+
+To ensure your looping automation runs smoothly, keep the following in mind:
+
+- Always verify that the matrix keys map to lists. Non-list references cause immediate errors.
+- Naming variables with `as` clarifies the meaning of each item in your loops and improves template readability.
+- Use references (`ref`) to avoid duplicating array values across your Taskfile and to maintain consistency.
+- Be cautious using loops in `deps` since dependencies run concurrently; output order is not guaranteed.
+- When looping over files, consider using the glob patterns wisely, especially if your directory contents may change.
+
+By following these guidelines, you empower your Taskfiles to operate at scale reliably.
+
+## Verifying Loops and Troubleshooting
+
+To confirm that loops operate as expected, use dry run (`--dry`) mode to see expanded commands without execution. Checking output logs also helps ensure correct iteration.
+
+If you encounter errors, a common scenario is a matrix reference resolving to a non-list variable, leading to a parse failure:
+
+```text
+task: Failed to parse ... matrix reference ".NOT_A_LIST" must resolve to a list
+```
+
+To fix this, ensure referenced variables are arrays or lists, not strings. Use explicit array syntax or references to lists only.
+
+<Tip>
+If your loop unexpectedly runs zero times, verify that your input data (variables, sources, or matrices) actually contain items. Empty lists silently skip all iterations.
+</Tip>
+
+<Tip>
+For large matrices, output can become difficult to interpret. Use descriptive labeling or variable renaming with `as` to maintain clarity.
+</Tip>
+
+## Continuing your Workflow
+
+Mastering Task’s looping constructs unlocks greater automation flexibility. Next, consider exploring how to combine these loops with preconditions, requires, and prompts to add conditional logic and user interaction to your workflows. Additionally, studying platform-specific task design will show you how to tailor loops to complex environments.
+
+Explore related guides like [Defining Tasks, Variables, and Dependencies](/guides/core-workflows/tasks-vars-dependencies) to deepen understanding of variable scope when looping, or visit the comprehensive [Templating Reference](/website/src/docs/reference/templating.md) for mastering dynamic expressions inside loops.
+
+By building on this foundation, you'll automate complex tasks concisely and reliably, accelerating your development and deployment pipelines.
+
+<Source url="https://github.com/go-task/task" branch="main" paths={[{"path": "taskfile/ast/for.go", "range": "1-78"}]} />
