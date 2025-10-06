@@ -1,0 +1,75 @@
+---
+title: "Key Concepts and Terminology"
+description: "Learn the essential language of Task: Taskfiles, tasks, variables, dependencies, includes, preconditions, and matrices. Understanding these enables you to author and reason about automation workflows efficiently."
+---
+
+## Understanding Task's Core Concepts and Terminology
+
+Task empowers you to automate and orchestrate complex workflows through concise YAML definitions. At its heart lies a set of foundational elements—Taskfiles, tasks, variables, dependencies, includes, preconditions, and matrices—that together form a language enabling flexible and powerful automation. Grasping this terminology is crucial to writing clear Taskfiles and troubleshooting or extending your automation with confidence.
+
+### The Building Blocks of Automation
+
+A **Taskfile** is the central configuration file where you define your tasks, variables, and other settings. Written in YAML, it outlines the shape and logic of your automation. Within a Taskfile, the primary units of work are **tasks** — discrete commands or sequences of commands designed to perform specific operations like building code, running tests, or deploying artifacts.
+
+**Variables** provide dynamic content to your tasks, letting you inject configurable values or computed outputs. These variables can be static, dynamically populated from shell commands, or even reference other variables, allowing you to create reusable and adaptable tasks.
+
+Crucially, **dependencies** let you express the relationships between tasks, specifying which tasks must run prior to others. This enables Task to automatically manage task execution order and concurrency, optimizing your workflow for efficiency.
+
+**Includes** allow task reuse and composition across multiple Taskfiles. By importing tasks from other Taskfiles, you create namespaces and modularize your automation, simplifying maintenance and facilitating collaboration.
+
+The power of control structures shines through **preconditions**, **requires**, and **prompts**. Preconditions define mandatory checks that must pass before a task executes, halting execution otherwise. Requires verify that essential variables are set and optionally restrict their allowed values. Prompts provide user interactions to confirm or deny potentially sensitive actions, safeguarding against unintended consequences.
+
+To enhance scalability, **matrices** and **for-loops** enable you to iterate over combinations of values or collections. This means you can define a task that runs multiple times for different platforms, environment configurations, or input parameters systematically and succinctly.
+
+### Interactions Between Concepts in Practice
+
+When authoring a Taskfile, you start by defining tasks with clear purposes. For example, a test suite task may depend on a build task, ensuring code is compiled before tests run. Variables determine command arguments or enable conditional execution paths without copying code. Includes let you share common utilities or build steps across projects while maintaining separate Taskfiles for specialized areas.
+
+Preconditions can enforce environment sanity checks like confirming configuration files exist or credentials are set. If these checks fail, Task prevents the task and dependent tasks from running, providing clear error messages. Requires add an additional layer by ensuring necessary inputs are provided, avoiding runtime errors from missing environment variables or parameters.
+
+Matrices facilitate running, say, integration tests across multiple operating systems and CPU architectures automatically, traversing all permutations of your specified versions. Combined with for-loops, they give you expressive power to exhaustively or selectively perform tasks without manual duplication.
+
+The interplay of these components means you can design automation workflows that are both robust and transparent, reducing manual intervention and increasing reproducibility.
+
+### Putting Concepts Into Context With Examples
+
+Consider a task designed to echo different OS and ARCH combinations:
+
+```yaml
+version: '3'
+
+vars:
+  OS_VAR: ['windows', 'linux', 'darwin']
+  ARCH_VAR: ['amd64', 'arm64']
+
+tasks:
+  loop-matrix-ref:
+    cmds:
+      - for:
+          matrix:
+            OS:
+              ref: .OS_VAR
+            ARCH:
+              ref: .ARCH_VAR
+        cmd: echo "{{.ITEM.OS}}/{{.ITEM.ARCH}}"
+```
+
+Here, the matrix loops over two variables containing lists of OS and architecture names, running a command for every combination. This concise expression leverages variable references and looping to scale work with ease.
+
+A task’s **sources** and **generates** indicate which files it depends on or produces, aiding Task’s ability to skip unchanged tasks via efficient fingerprinting. Loops can also iterate over these sources or generated files, enabling batch processing scenarios.
+
+Through control options like `method` and `status`, you can fine-tune when tasks trigger, such as only running if sources are newer than generated outputs or if a programmatic check fails, providing granular execution control.
+
+### Why These Terms Matter
+
+Mastering Task’s core terminology empowers you to write precise Taskfiles that capture your project’s automation needs clearly and maintainably. This understanding helps avoid common pitfalls like circular dependencies, missing variables, or unnecessary task runs.
+
+This language also allows you to reason effectively about your automation flow, debug issues quickly, and design scalable, reusable, and safe task pipelines that evolve as your projects grow.
+
+### Explore Further
+
+This conceptual framework sets the stage for deeper dives into how Task’s architecture assembles and executes these definitions. To continue your mastery, consider reviewing the [How Task Works: Architecture at a Glance](/overview/core-concepts-architecture/architecture-overview) page providing an architectural perspective, or the [Taskfile Schema Reference](/website/src/docs/reference/schema.md) for detailed property definitions.
+
+For practical hands-on usage, the [Getting Started Guide](/getting-started) walks through creating Taskfiles and running tasks, while the [Guide](/guides/core-workflows/tasks-vars-dependencies) expands on using variables, dependencies, and workflows effectively.
+
+<Source url="https://github.com/go-task/task" paths={[{"path": "taskfile/ast/taskfile.go", "range": "1-78"},{"path": "taskfile/ast/task.go", "range": "1-204"},{"path": "website/src/docs/guide.md", "range": "20-500"}]} />
