@@ -1,0 +1,68 @@
+---
+title: "Platforms, Matrix, and Conditional Execution"
+description: "Explore Task's ability to target specific platforms, leverage powerful matrix executions, and conditionally run tasks. Learn how platform specs and matrix definitions empower scalable, cross-environment automation."
+---
+
+## Understanding Platforms, Matrix, and Conditional Execution in Task
+
+Effectively managing complex automation workflows across diverse environments is a key challenge for modern development and CI/CD processes. Task empowers you to tailor task execution precisely, enabling conditional runs based on target platforms, driving parallelized execution through matrix combinations, and looping over dynamic inputs like variables or file lists. This page helps you harness these features to create scalable, cross-platform automation that is both robust and expressive.
+
+### The Concept of Platforms: Precise Targeting for Your Tasks
+
+At its core, platform targeting lets you define where a task or command should execute based on operating system (OS) and CPU architecture (Arch). Leveraging validated GOOS and GOARCH values, Task allows developers to specify exact platforms or combinations thereof for their automation.
+
+For example, you can restrict a task to run solely on Windows, on Linux/amd64, or on multiple platforms simultaneously. If the current execution environment does not match the specified platforms, these tasks or commands are automatically skipped without errors, maintaining workflow fluidity. This selective execution empowers cross-environment consistency and efficiency.
+
+You can apply platform constraints both at the task level — to completely exclude tasks on unsupported systems — or at the command level within tasks to finely control individual steps. Such granularity enables mixing platform-specific commands alongside universal ones within the same task, avoiding duplication and enhancing maintainability.
+
+### Matrix Execution: Automating Across All Combinations
+
+Beyond single-platform conditions, Task introduces powerful matrix execution. Here, you can define multiple variable lists (for instance, OS and Arch arrays) that Task will automatically combine to produce every permutation. Tasks can then loop through each pair in this matrix, running commands with contextual variables for each iteration.
+
+This paradigm is invaluable for build pipelines and testing scenarios where you need to cover every environment combination to ensure compatibility. For example, a matrix of three OS options and two architectures yields six task runs, each configured with a unique OS/Arch pair.
+
+Matrix values can also reference existing variables, enabling dynamic, flexible configurations based on your global or task-scoped variables. Task validates these references, ensuring correctness and providing clear error messages when inputs are invalid, thus saving time debugging misconfigurations.
+
+### Looping and Conditional Execution: Harnessing Dynamic Inputs
+
+Task expands flexibility further by supporting iteration over various dynamic collections including task sources, generated files, variable contents, and even the output of shell commands. This iteration mechanism uses the `for` key, paired with templated variables to tailor each iteration's context.
+
+Beyond static lists, you can loop over the contents of variables split by custom delimiters, supporting numerous use cases like processing file lists or parameter batches from dynamic sources. Moreover, you can rename the loop variable for clarity within your commands, enhancing readability.
+
+Looping applies similarly to dependencies, letting you declare sets of tasks to run in parallel with different variables, optimizing execution time without losing control. It's important to understand that dependencies run concurrently, so ordered output or serialized execution is not guaranteed by default.
+
+### Real-World Scenarios: Bringing It All Together
+
+Imagine you maintain a CI pipeline that compiles a Go application for Windows and macOS on two architectures. Using platform specifications, you ensure platform-specific tasks run only where appropriate. Complementing this, a matrix runs tests across every OS/architecture pair, reporting results for all environments automatically.
+
+Additionally, you might loop over a list of configuration files generated dynamically or passed via variables, running processing tasks individually on each file. This modular orchestration reduces duplication and makes your Taskfile concise while scalable.
+
+By combining platform targeting, matrix permutations, and for-loop constructs, Task enables automation frameworks that adapt fluidly to changing environments and requirements.
+
+### Practical Tips and Best Practices
+
+When defining platform filters, always use recognized GOOS/GOARCH values to avoid silent skips or unexpected failures. Leveraging variable references inside matrix definitions enhances maintainability by centralizing configuration.
+
+For looping over variables or files, use templating cautiously, and name your `.ITEM` or renamed loop variables clearly to prevent confusion in complex Taskfiles. Consider error scenarios such as non-list variable references and validate them early.
+
+Remember that while dependencies run concurrently, commands within a task run sequentially unless you explicitly invoke parallelism, helping maintain predictable behavior.
+
+<Source
+  url="https://github.com/go-task/task"
+  branch="main"
+  paths={[
+    { path: "taskfile/ast/platforms.go", range: "1-101" },
+    { path: "taskfile/ast/matrix.go", range: "1-84" }
+  ]}
+/>
+
+---
+
+For additional insights and practical examples, explore the following related guides:
+- [Authoring Multi-Platform Taskfiles](/guides/advanced-patterns/multi-platform-taskfiles) — delve deeper into filtering and cross-platform usage
+- [Automating with Matrix & For-Loops](/guides/advanced-patterns/matrix-and-for-loops) — comprehensive patterns for loops and iteration
+- [Taskfile and Task Data Models](/concepts/core-architecture/taskfile-and-task-models) — foundational knowledge on Taskfile structure and referencing
+
+Next, consider reading about [Preconditions, Requires, and Validation](/concepts/advanced-control-and-guardrails/preconditions-requires-and-validation) to combine conditional execution with guardrails for effective automation control.
+
+---
