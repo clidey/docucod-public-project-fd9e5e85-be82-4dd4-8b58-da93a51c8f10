@@ -1,0 +1,135 @@
+---
+title: "Prerequisites & Installation"
+description: "Learn what systems and dependencies are needed to run Task, then get clear step-by-step instructions for installing it on your preferred platform (Linux, macOS, Windows). Accelerates setup with platform-specific recommendations and checks for potential blockers early."
+---
+
+## Prerequisites for Running Task
+
+Before installing Task, ensure your system meets basic requirements to guarantee a smooth setup and execution. Task is designed to run across Linux, macOS, and Windows platforms, but each environment requires shell support and network connectivity to fetch dependencies or binaries. You will also need sufficient permissions to install software on your system, either with administrative rights or appropriate user privileges.
+
+Since Task operates via CLI and interacts with system commands, make sure your terminal or shell environment is fully functional. On Windows, using PowerShell or Windows Terminal is recommended for best compatibility. Additionally, having `curl` or `wget` available is essential for installation scripts and fetching packages.
+
+## Installing Task
+
+Task provides multiple installation options tailored to your platform and preferences. The official packages and scripts simplify setup, while source builds deliver full customization.
+
+<Steps>
+  <Step title="Use Official Package Managers">
+  
+For Linux distributions such as Fedora or Ubuntu, you can leverage the provided repositories to install Task. First, run the setup script appropriate for your package manager, for example:
+
+```shell
+curl -1sLf 'https://dl.cloudsmith.io/public/task/task/setup.deb.sh' | sudo -E bash
+```
+
+This adds the Task repository to your system. Then install Task:
+
+```shell
+sudo apt install task
+```
+
+On macOS and Linux, Homebrew installation is streamlined with:
+
+```shell
+brew install go-task/tap/go-task
+```
+
+  </Step>
+
+  <Step title="Install via Snap (Linux only)">
+  
+If your Linux distribution supports Snap with classic confinement, you can install Task by running:
+
+```shell
+sudo snap install task --classic
+```
+
+This method ensures that Task is sandboxed appropriately and updated automatically by Snap.
+
+  </Step>
+
+  <Step title="Install via npm for Cross-Platform Support">
+  
+For a cross-platform Node.js ecosystem, install Task globally using npm:
+
+```shell
+npm install -g @go-task/cli
+```
+
+This method works well if you already use Node.js and npm.
+
+  </Step>
+
+  <Step title="Install with an Install Script">
+  
+For rapid, script-driven setup—especially useful in CI environments—run the install script:
+
+```shell
+sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b ~/.local/bin
+```
+
+This installs the latest Task binary into `~/.local/bin`. Adjust the `-b` parameter to change the directory.
+
+  </Step>
+
+  <Step title="Build from Source with Go">
+  
+If you prefer compiling from source or want the absolute latest code, ensure Go is installed and run:
+
+```shell
+go install github.com/go-task/task/v3/cmd/task@latest
+```
+
+You may also specify an output directory with the `GOBIN` environment variable.
+
+  </Step>
+</Steps>
+
+## Configuring Your Environment After Installation
+
+After installing Task, verify that the installation directory is in your system's `PATH` environment variable so you can run `task` from any terminal session. For Linux and macOS, you may add the following to your shell configuration (e.g., `.bashrc` or `.zshrc`):
+
+```shell
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+On Windows, update your system environment variables accordingly or use PowerShell profiles to include the Task binary location.
+
+To optimize usability, consider setting up shell completions by running:
+
+```shell
+task --completion bash  # For Bash shells
+```
+
+and adding the output to your shell startup scripts. This enables convenient tab completion.
+
+## Verifying Your Installation
+
+It is critical to confirm Task is installed and working correctly. Simply run:
+
+```shell
+task --version
+```
+
+This command should print the installed Task version number, demonstrating that the binary is accessible and operational.
+
+<Tip>
+If the version command fails or `task` is not found, re-check your `PATH` environment and verify the installation directory.
+</Tip>
+
+## Troubleshooting Common Installation Issues
+
+Occasionally, installation can fail due to missing dependencies or permission issues. Here are some practical tips to avoid delays:
+
+- Ensure you have administrative privileges or use `sudo` on Linux/macOS during installation.
+- Verify that required tools such as `curl` or `wget` are installed and functional.
+- On Windows, make sure to use an updated terminal with proper access, and consider running PowerShell as Administrator.
+- When installing via package managers, update package caches (`apt update`, `dnf makecache`) before installing.
+
+If issues persist, consult the [Troubleshooting Common Installation & Startup Issues](/getting-started/troubleshooting-quick-fixes/troubleshooting-common-problems) guide.
+
+## Next Steps
+
+Once Task is installed and verified, you can proceed to create your first Taskfile and configure basic automation tasks. Explore the [Configuration: Your First Taskfile](/getting-started/onboarding-essentials/initial-configuration-setup) and [First Run & Quick Validation](/getting-started/onboarding-essentials/run-and-validate) guides to begin leveraging Task for effective task automation.
+
+<Source url="https://github.com/go-task/task" paths={[{path: "website/src/docs/installation.md", range: "1-165"}]} />
