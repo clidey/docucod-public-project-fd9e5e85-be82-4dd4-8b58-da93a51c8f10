@@ -1,0 +1,71 @@
+---
+title: "Taskfile Includes and Composition"
+description: "Discover how Task supports modularity and reusability by including and composing multiple Taskfiles. This page explains includes, variable merging, ordering, and the structure for managing complex, multi-file automation setups."
+---
+
+## Understanding Taskfile Includes and Composition
+
+In complex automation workflows, maintaining a single monolithic Taskfile quickly becomes unmanageable. Task addresses this challenge by allowing you to **include and compose multiple Taskfiles**. This modular structure promotes reuse, isolation of concerns, and cleaner project organization. This page focuses exclusively on how Task manages includes, variable merging, ordering, and task composition to enable robust multi-file automation setups.
+
+### The Core Idea of Includes
+
+At its heart, an `include` tells Task to incorporate another Taskfile into the current one, effectively composing larger automation blueprints from smaller, focused Taskfiles. Each included Taskfile is assigned a unique **namespace**—a prefix that scopes its tasks and variables—so you can reference them distinctly within the parent Taskfile. This mechanism prevents naming collisions and clarifies task origins when you invoke them.
+
+Includes support several advanced options such as variable overrides, optional inclusion, internal marking for task encapsulation, flattening tasks into the root namespace, and aliasing namespaces for shorter calls. These capabilities make includes a flexible tool to build maintainable automation as your projects grow.
+
+### How Includes Fit Together: Composition and Variable Merging
+
+When Task loads a Taskfile that includes others, it follows a **hierarchical merging process**. The main Taskfile is parsed first, then each included Taskfile is read and merged in sequence. This ensures that all variables, tasks, and configurations are composed into a unified structure before execution.
+
+Variables defined in included Taskfiles take precedence over those in the including (parent) Taskfile to allow included Taskfiles to be self-contained and overridable, while variables passed explicitly via the `vars` option on includes enable customization for reuse. Additionally, variables propagate appropriately such that commands running included tasks have access to the correct context.
+
+Task also respects the following when merging includes:
+
+- Variables declared globally and inside includes are merged carefully to preserve overrides.
+- Tasks are namespaced unless `flatten` is enabled, which merges tasks directly into the parent scope.
+- Aliases allow referencing tasks with more than one namespace shortcut.
+- Included tasks can be marked `internal` to hide them from users while permitting calls from other tasks.
+
+Taken together, these features provide a powerful composition model that balances modular encapsulation with flexibility.
+
+### Real-World Usage and Scenarios
+
+Imagine maintaining multiple microservices, each with its own Taskfile automating builds and tests. A root Taskfile can include each microservice’s Taskfile, assigning each a namespace for clear task addressing (`service1:build`, `service2:test`, etc.). Variables like image tags or paths can be customized per inclusion without duplicating Taskfiles.
+
+Another example involves flattening included utility Taskfiles into the root namespace for convenience while selectively excluding certain tasks to avoid conflicts. You may also mark utility includes as internal so users don’t accidentally invoke them directly.
+
+Because includes can specify a `dir` option, tasks inside included Taskfiles run as if invoked from those directories, preserving path semantics and simplifying relative file references.
+
+### Managing Ordering and Conflicts
+
+Task processes includes in the order they are declared in the Taskfile, preserving predictability. When flattening included tasks, name conflicts immediately raise errors preventing ambiguous task execution.
+
+When multiple included Taskfiles define the same task name within namespaces, those tasks remain accessible distinctly. However, flattening merges those task names into one flat namespace, so conflicting task names across includes lead to immediate failure to alert you of collisions.
+
+You can exclude specific tasks from includes to avoid such name clashes or undesired importation, further refining your composite automation structure.
+
+### Practical Tips and Best Practices
+
+- Use namespaces deliberately to avoid mixing tasks from unrelated Taskfiles.
+- Flatten only trusted, unique-named tasks to simplify calling without losing clarity.
+- Use `vars` on includes to parameterize reusable Taskfiles without rewriting.
+- Mark utilities or helper includes as `internal` to keep your task list user-friendly.
+- Always verify task names after inclusion with `task --list-all` to inspect the final composed tasks.
+- Prefer relative paths for `taskfile` in includes to keep portability intact.
+- Avoid using `dotenv` in included Taskfiles to prevent inconsistent environment loading.
+
+### Troubleshooting Common Issues
+
+Conflicts in task names during flattening will produce clear error messages. If a included Taskfile does not exist and is not marked `optional`, Task fails early, signaling the missing dependency.
+
+Variables passed via `vars` must be properly scoped and templated, or you may experience unexpected default values. Make sure to use the `default` function within your included Taskfiles' variable definitions to allow overrides.
+
+If your included tasks do not appear as expected, check for the `internal` or `flatten` flags, which modify visibility and namespace behavior.
+
+---
+
+Explore the [Taskfile and Task Data Models](/concepts/core-architecture/taskfile-and-task-models) to deepen your understanding of how Taskfiles and tasks structure interact with includes. For a practical walkthrough of task and variable definitions, see the [Defining Tasks, Variables, and Dependencies](/guides/core-workflows/tasks-vars-dependencies).
+
+*Taskfile Includes and Composition* is a foundational concept for creating scalable and maintainable Task automation setups, empowering you to construct complex workflows while keeping Taskfiles clean and readable.
+
+<Source url="https://github.com/go-task/task" paths={[{"path": "taskfile/ast/include.go", "range": "1-148"},{"path": "taskfile/ast/tasks.go", "range": "60-135"},{"path": "taskfile/ast/taskfile.go", "range": "26-85"}]} />
