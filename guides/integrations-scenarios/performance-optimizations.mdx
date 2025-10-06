@@ -1,0 +1,70 @@
+---
+title: "Performance Tips and Optimizations"
+description: "Unlock faster builds and runs: strategies for optimizing Task's execution, leveraging concurrency, caching, and incremental builds to boost productivity on large and small projects."
+---
+
+# Performance Tips and Optimizations
+
+Optimizing Task's performance can transform your automation workflows by reducing build times and streamlining execution, whether you're managing large-scale projects or simple jobs. This page focuses specifically on strategies that leverage concurrency, caching, incremental builds, and fingerprinting to speed up your Taskfile runs, helping you get tasks done faster and more efficiently.
+
+## Making the Most of Concurrency
+
+Task inherently supports parallel execution, enabling tasks and their dependencies to run simultaneously to maximize resource utilization. By thoughtfully structuring your Taskfiles with concurrency in mind, you can dramatically cut down total run time. Dependencies are executed in parallel by default, so avoid having dependent tasks relying on one another in the same dependency list.
+
+For explicit parallelism at the command invocation level, you can use the `--parallel` or `-p` flag, which instructs Task to run multiple specified tasks concurrently. Additionally, the `concurrency` option allows you to cap the number of tasks running in parallel, preventing resource exhaustion on constrained environments.
+
+It’s important to balance concurrency to your system’s capabilities. Overloading your machine with too many parallel tasks can degrade performance rather than improve it. Start with a concurrency level close to your CPU cores, then adjust based on observed behavior.
+
+<Tip>
+Use the `--parallel -p` flag to trigger multiple tasks concurrently, and control maximum concurrency with the `concurrency` setting in the CLI or Taskfile for best results.
+</Tip>
+
+## Caching and Incremental Builds with Fingerprinting
+
+Task supports intelligent caching through fingerprinting of source and generated files. By configuring the `sources` and `generates` attributes, Task tracks file modifications using checksums (default) or timestamps to determine if a task actually needs to run. If no changes are detected, Task intelligently skips the task and reports it as up-to-date, saving time and computation.
+
+This approach is essential when tasks generate build artifacts, compile code, or process large sets of files. Instead of rebuilding everything, Task focuses only on what changed.
+
+You can customize fingerprinting at the task or global level with the `method` attribute, choosing between `checksum`, `timestamp`, or `none` (which disables checks and always runs the task).
+
+In scenarios requiring complex validation, the `status` keyword lets you provide programmatic checks for up-to-date detection. These shell test commands can combine with fingerprinting to further control execution.
+
+<Note>
+Fingerprint caches are stored in a local `.task` directory by default, which you should exclude from your version control. You can override this location using the `TASK_TEMP_DIR` environment variable.
+</Note>
+
+## Avoiding Unnecessary Work
+
+Beyond caching, you can leverage Task’s `run` option to control task invocation frequency, choosing between `always`, `once`, or `when_changed`. This fine-tunes when a task executes, especially useful in complex dependency graphs where redundant executions might occur.
+
+Using `requires` to enforce necessary variables and `preconditions` to guard execution prevents wastage of resources by halting tasks early when their conditions aren’t met.
+
+Additionally, deferred commands via `defer` help schedule cleanup or follow-up tasks after the main commands, ensuring critical steps occur even in failure scenarios without manual intervention.
+
+## Best Practices for Output and Interactive Tasks
+
+Output management can impact perceived performance, especially when running many tasks concurrently. Task lets you select from several output modes such as `interleaved` (default), `group`, and `prefixed` to organize logs and reduce clutter.
+
+For interactive CLI applications within tasks, enabling `interactive: true` helps Task optimize for terminal interactivity, avoiding typical glitches in concurrent or grouped output modes.
+
+These nuances keep your automation responsive and clean, which can be critical in CI/CD pipelines or rapid development cycles.
+
+## Verify and Troubleshoot Performance Issues
+
+To check if tasks are being skipped due to fingerprinting, run them multiple times; Task will indicate when a task is up to date. Use the `--force` or `-f` flag to override caching and force task execution during troubleshooting.
+
+Watch for common pitfalls such as incorrect `sources` or missing `generates` declarations causing unnecessary reruns. Similarly, too aggressive concurrency can lead to resource contention or failures in tasks expecting serial execution.
+
+Checking your Taskfile with `task --dry` can help preview what commands will run without executing them, aiding in audit and verification.
+
+<Warning>
+If tasks unexpectedly rerun or performance declines, review your use of command-level silent mode, output settings, and precondition logic, as these can impact execution order and output streaming.
+</Warning>
+
+## Wrapping Up and Next Steps
+
+By strategically applying concurrency, caching, and execution controls, you can greatly enhance Task’s efficiency, shortening build times and improving developer productivity. Once comfortable, explore advanced patterns such as using matrices and loops for parameterized builds or integrating Task within your CI/CD pipelines for optimized automation.
+
+Consult the [Integrating Task with CI/CD Pipelines](/guides/integrations-scenarios/ci-cd-automation) guide next to extend these performance principles into your continuous workflows.
+
+<Source url="https://github.com/go-task/task" paths={[{"path": "executor.go", "range": "1-318"},{"path": "compiler.go", "range": "1-153"},{"path": "concurrency.go", "range": "1-18"}]} />
