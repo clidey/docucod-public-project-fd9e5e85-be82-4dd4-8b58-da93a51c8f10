@@ -1,0 +1,173 @@
+---
+title: "Getting Started: Create Your First Taskfile"
+description: "Learn how to set up your first Taskfile, define basic tasks, and run them from the command line. This guide helps new users experience the value of Task within minutes, focusing on making task automation simple and repeatable."
+---
+
+# Getting Started: Create Your First Taskfile
+
+Setting up Task to automate your workflows starts with creating a Taskfile, a simple YAML file that defines tasks you want to run, along with any variables or dependencies. This page guides you through creating your first Taskfile, defining basic tasks, and running them from the command line—turning manual commands into repeatable automation in minutes.
+
+## Why Create a Taskfile?
+
+A Taskfile captures your commands and task definitions in a single declarative file, making it easy to reuse, share, and version control your automation logic. Instead of remembering or scripting complex shell commands repeatedly, you define named tasks — such as building your project, running tests, or deploying — that anyone can invoke consistently.
+
+This onboarding guide focuses narrowly on establishing your first Taskfile and running basic tasks to demonstrate Task’s simplicity and immediate value.
+
+## What You’ll Build
+
+In this workflow, you will generate a `Taskfile.yml` configured with a simple greeting task, then extend it with a new task to build a Go program. You'll learn how to call these tasks from the command line. Expect to spend under 10 minutes; no advanced YAML or Go knowledge is required.
+
+## Setting Up Your First Taskfile
+
+After installing Task, the easiest way to generate an initial Taskfile is through the built-in initializer. In your project root or desired directory, run:
+
+```shell
+ task --init
+```
+
+This command creates a `Taskfile.yml` with a basic example task. You can specify a target directory or filename if needed:
+
+```shell
+ task --init ./subdirectory
+ task --init Custom.yml
+```
+
+Example output:
+
+```yaml version: '3'
+
+vars:
+  GREETING: Hello, World!
+
+tasks:
+  default:
+    cmds:
+      - echo "{{.GREETING}}"
+    silent: true
+```
+
+Key elements here are:
+
+- `version`: Specifies the Taskfile schema version to ensure compatibility.
+- `vars`: Declares a variable `GREETING` that will be substituted in commands.
+- `tasks`: The named executable actions; here the special `default` task.
+- `cmds`: The shell commands to be run within the task.
+- `silent`: Hides the command echo during execution for cleaner output.
+
+This simple Taskfile comes ready to greet you.
+
+## Running Your First Task
+
+To execute the `default` task, just run:
+
+```shell
+ task default
+```
+
+You’ll see the greeting printed:
+
+```shell
+Hello, World!
+```
+
+Note that since `default` is a reserved name, you can also run simply:
+
+```shell
+ task
+```
+
+If your Taskfile is in another directory or has a different name, use these flags:
+
+- `--dir` to specify the directory:
+  
+  ```shell
+  task --dir ./subdirectory
+  ```
+
+- `--taskfile` to specify a custom filename:
+
+  ```shell
+  task --taskfile Custom.yml
+  ```
+
+This flexibility lets you organize your project and automation cleanly.
+
+## Adding More Tasks
+
+To extend your automation, edit your Taskfile and add a new task, for example a simple Go build:
+
+```yaml
+version: '3'
+
+vars:
+  GREETING: Hello, World!
+
+tasks:
+  default:
+    cmds:
+      - echo "{{.GREETING}}"
+    silent: true
+
+  build:
+    cmds:
+      - go build ./cmd/main.go
+```
+
+Here the `build` task runs a standard Go build command. Now you can:
+
+```shell
+ task build
+```
+
+which compiles your program.
+
+### Practical Tips
+
+- Commands support shell-style syntax and take advantage of Task’s templating system to use variables dynamically.
+- Use `silent: true` judiciously to reduce noise in output.
+- You can chain tasks by calling them inside other tasks using the `task` command.
+
+## Understanding the Taskfile Layout
+
+By starting simple, you gain a strong foundation:
+
+- The `version` key anchors schema compatibility.
+- `vars` provide static or dynamic variables for command interpolation.
+- `tasks` define named actions—each with commands (`cmds`), dependencies (`deps`), variables, and other configurations.
+
+As you grow comfortable, explore further features: loops (`for`), conditional execution (`platforms`), including other Taskfiles, and much more.
+
+## Troubleshooting Your First Tasks
+
+If your commands don’t execute as expected, consider these:
+
+- Ensure Task is installed correctly and accessible on your system’s PATH.
+- Check for YAML syntax errors; indentation and spacing matter.
+- Verify your shell commands run manually outside Task.
+- Remember that Task uses a Go-native shell interpreter, so use standard shell syntax.
+
+If a task fails unexpectedly:
+
+- Run with `--verbose` to get detailed logs.
+- Confirm environment variables are correctly set or passed.
+- Use `--dry` mode (`task -n`) to preview commands without execution.
+
+<Tip>
+If you encounter issues initializing your Taskfile, verify your current working directory permissions and that you are not overwriting an existing file unintentionally.
+</Tip>
+
+## Next Steps
+
+With your first tasks running, you’re ready to explore:
+
+- Defining task dependencies and variable scopes.
+- Using includes to share and modularize Taskfiles.
+- Leveraging advanced features such as prompt warnings, status checks, and output control.
+
+You can continue with our [Definitions of Tasks, Variables, and Dependencies Guide](/guides/core-workflows/tasks-vars-dependencies) to deepen your knowledge.
+
+Also, the [Command Line Interface Reference](/reference/cli/) explains how to use all CLI flags and options to maximize Task’s power.
+
+Explore other parts of the documentation or revisit the [Getting Started Home](/getting-started) for a broader onboarding path.
+
+<Source url="https://github.com/go-task/task" paths={[{"path": "cmd/task/task.go", "range": "14-125"},{"path": "website/src/docs/getting-started.md", "range": "3-119"}]} />
