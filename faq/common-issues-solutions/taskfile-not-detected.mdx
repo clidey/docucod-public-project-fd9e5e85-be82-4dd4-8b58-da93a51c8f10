@@ -1,0 +1,121 @@
+---
+title: "Why isn't my Taskfile being detected?"
+description: "Understand the causes when Task does not recognize your Taskfile, including supported Taskfile names, required file locations, and common errors in Taskfile structure. Learn the steps to validate and fix detection problems so tasks can be executed successfully."
+---
+
+## Why Isn't My Taskfile Being Detected?
+
+When running Task, the core requirement is for Task to locate and parse your Taskfile correctly. This page helps you understand why Task might not be detecting your Taskfile as expected, covering the supported filenames, how Task searches for the Taskfile, common structural errors that can prevent detection, and the steps to diagnose and resolve these issues. Understanding these aspects ensures your tasks run smoothly without confusion over missing Taskfiles.
+
+## Supported Taskfile Names and Search Behavior
+
+Task automatically looks for Taskfiles using a prioritized list of filenames. It searches the current directory first, then walks up parent directories until it finds a valid Taskfile, similar to how Git searches for its config files. Supported Taskfile names, in order of priority, include:
+
+- `Taskfile.yml`
+- `taskfile.yml`
+- `Taskfile.yaml`
+- `taskfile.yaml`
+- `Taskfile.dist.yml`
+- `taskfile.dist.yaml`
+- `taskfile.dist.yml`
+- `taskfile.dist.yaml`
+
+Files with `.dist` in their names serve as templates or defaults that can be version-controlled, while users can override them locally by adding a non-`.dist` Taskfile that is usually gitignored. 
+
+If you run `task` from a subdirectory without a Taskfile, Task will walk up the directory tree until it finds a Taskfile. Tasks then execute relative to the directory containing the Taskfile. This flexible discovery supports monorepos and nested projects without duplicating Taskfiles, enabling commands like:
+
+```shell
+cd serviceA
+task build
+```
+
+Here, Task locates the Taskfile up the hierarchy and adjusts the execution context to `serviceA` using the special variable `{{.USER_WORKING_DIR}}`.
+
+You can also specify an explicit Taskfile path or directory using the `--taskfile` (or `-t`) and `--dir` (or `-d`) flags if your Taskfile has a custom name or location.
+
+Additionally, using the `--global` (or `-g`) flag runs a Taskfile from your home directory, searching for files named `{T,t}askfile.{yml,yaml}` there. This is useful for reusable, system-wide automation.
+
+## Common Reasons Task Does Not Recognize Your Taskfile
+
+Despite the flexible search, Task may fail to detect your Taskfile due to several common causes:
+
+- **Incorrect filename:** The file must match one of the supported Taskfile names exactly, including case sensitivity on case-sensitive filesystems.
+- **File location:** If the current working directory and its parent directories do not contain a Taskfile, Task cannot find one.
+- **Invalid Taskfile syntax or schema:** If the Taskfile YAML fails to parse correctly, Task treats it as invalid and does not load tasks.
+- **Missing or mismatched schema version:** Every Taskfile must specify a `version` key with a valid semantic version (e.g., `version: '3'`). Missing or incompatible versions cause loading failure.
+- **Included Taskfile Issues:** If you are using included Taskfiles, ensure all included files exist, have valid schemas, and do not contain unsupported keys (e.g., dotEnv declarations in included files are not allowed).
+- **Permission or access issues:** If Task cannot read the Taskfile due to file permissions or errors, it will not detect it.
+
+Errors related to these causes are surfaced clearly by Task or through its logs, guiding you to the root problem.
+
+## Validating and Troubleshooting Taskfile Detection
+
+When Task does not detect your Taskfile, there are pragmatic steps you can take to find and fix the issue:
+
+Start by confirming that your Taskfile is named correctly and placed in the expected directory. Check for capitalization consistency, as Task supports both uppercase and lowercase variants but will only find exact matches.
+
+If the file exists and is named correctly, verify the YAML syntax using a linter or YAML parser. Malformed YAML or syntax errors prevent Task from parsing the file. Task outputs detailed error messages for syntax issues, including file location and line number.
+
+Ensure your Taskfile includes a valid version declaration at the root:
+
+```yaml
+version: '3'
+```
+
+If the `version` key is missing or invalid, Task will reject the file.
+
+If your Taskfile includes other files, validate that those included Taskfiles exist, have matching schema versions, and do not contain disallowed keys such as `dotenv` declarations which are only allowed in the main Taskfile.
+
+You can also try running Task with the `--init` flag to generate a default Taskfile in the current directory:
+
+```shell
+task --init
+```
+
+This can help you compare your existing Taskfile to the known good schema and structure.
+
+To explicitly check which file Task attempts to load, use verbose logging with the `-v` flag and specify the directory or Taskfile manually with `-d` or `-t` flags as needed:
+
+```shell
+task -v -d ./path/to/dir
+```
+
+If you run Task from a subdirectory without a Taskfile, remember that it searches parent directories. Explicitly specifying the `--dir` flag can help if you want to override this behavior.
+
+## Typical Error Messages and What They Mean
+
+Task provides meaningful error messages when detection fails:
+
+- **No Taskfile found:** `task: No Taskfile found at "<path>" (or any of the parent directories). Run 'task --init' to create a new Taskfile.`
+- **Invalid Taskfile parse error:** `task: Failed to parse <filename>:` followed by details on the YAML syntax error and file location
+- **Missing schema version:** `task: Missing schema version in Taskfile <filename>`
+- **Include cycles or version mismatches:** Specific errors when included Taskfiles form cycles or have differing schema versions
+- **Checksum mismatch:** When an included or remote Taskfile checksum does not match the pinned value
+
+These messages help you pinpoint the configuration or structural issue blocking Taskfile detection.
+
+## Best Practices to Avoid Detection Issues
+
+Organize your project with the Taskfile in the root directory or a consistent location. Use supported names and extensions (`.yml` or `.yaml`), respecting casing to avoid operating system mismatches.
+
+Use explicit `version: '3'` to guarantee compatibility with Task's latest schema.
+
+Validate Taskfiles with YAML linters before running Task.
+
+Avoid placing `dotenv` declarations in included Taskfiles; keep such global environment settings in the main Taskfile.
+
+Leverage Task's `--taskfile` and `--dir` flags for custom locations when necessary.
+
+Keep included Taskfiles consistent in schema version and validate their availability if optional includes are not used.
+
+Use the verbose flag for clarity during Taskfile loading and troubleshooting.
+
+## References and Next Steps
+
+- Explore [Supported File Names and Searching](https://taskfile.dev/#/usage?id=running-taskfiles) for detailed discovery behavior, including examples.
+- Confirm Taskfile syntax with the [Taskfile Schema Reference](/website/src/docs/reference/schema.md).
+- See the [Getting Started: Create Your First Taskfile](/guides/core-workflows/quickstart-create-taskfile) for building a valid Taskfile from scratch.
+- Review the [Troubleshooting Common Problems](/getting-started/troubleshooting-quick-fixes/troubleshooting-common-problems) guide to handle detection and parsing errors.
+
+<Taskfile/reader.go 1-250 />
+<Source url="https://github.com/go-task/task" paths={[{"path": "website/src/docs/guide.md", "range": "36-143"},{"path": "errors/errors_taskfile.go", "range": "10-150"},{"path": "errors/error_taskfile_decode.go", "range": "10-83"}]} branch="main" />
