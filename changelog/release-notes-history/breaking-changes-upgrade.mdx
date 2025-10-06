@@ -1,0 +1,72 @@
+---
+title: "Breaking Changes & Upgrade Guide"
+description: "Identify breaking changes and required migration steps between Task versions. This page provides clear instructions and explanations on how to upgrade safely, so users can handle major changes smoothly, including deprecations and backward incompatibilities."
+---
+
+# Breaking Changes & Upgrade Guide
+
+This page equips you to confidently identify and address breaking changes and migration steps when upgrading across Task versions. It focuses on helping you understand which features have been removed, altered, or deprecated, and provides clear, actionable instructions so that your automation workflows continue running smoothly without interruption. By following this guide, you can plan upgrades with minimal friction and adapt your Taskfiles to new version requirements safely.
+
+## Understanding Breaking Changes
+
+Breaking changes occur when a new Task release modifies or removes existing functionality in a way that could cause your Taskfiles to stop working or behave differently. These can arise from schema upgrades, removal of deprecated features, behavioral changes in task execution, or shifts in variable and include semantics.
+
+It's essential to identify whether your Taskfiles rely on deprecated or now-incompatible features before upgrading. This page highlights significant breaking changes introduced in recent major versions, emphasizing how they impact your existing Taskfiles and what adjustments are required.
+
+## Key Breaking Changes and Migration Instructions
+
+### Migration from Taskfile Version 2 to Version 3
+
+Support for the Taskfile version 2 schema was officially removed starting with Task v3.34.0. If your Taskfiles use `version: '2'`, they will no longer be compatible with any Task release beyond v3.33.0.
+
+You **must upgrade your Taskfile format to version 3**, which includes changes such as:
+
+- Moving variables from `Taskvars.yml` into the `vars` section of the primary Taskfile.
+- Adjusting task and variable syntax to conform with version 3 schema requirements.
+- Revising how includes and references work, as some semantics have changed.
+
+Failure to migrate will prevent Task from loading your Taskfile successfully.
+
+For detailed differences between versions 2 and 3 and step-by-step migration examples, please consult the [Version 2 Schema Deprecation Notice](https://taskfile.dev/deprecations/version-2-schema) and the [Task v3 Release Notes](https://github.com/go-task/task/releases/tag/v3.0.0). <Source url="https://github.com/go-task/task" branch="main" paths={[{"path":"website/src/docs/deprecations/version-2-schema.md","range":"1-37"}]} />
+
+### Experimental Features and Opt-In Flags
+
+Starting with recent Task releases, some breaking changes are introduced as experimental features within minor version updates. These features require explicit opt-in through feature flags in configuration files (like `.taskrc.yml`) before becoming the default in a future major release.
+
+This approach helps avoid sudden disruptions by allowing you to test and provide feedback on upcoming changes in a controlled manner.
+
+To enable an experimental feature, use your Task configuration file or CLI flags as documented in the corresponding experiment pages.
+
+### Removal of Deprecated Features
+
+Features marked as deprecated in prior releases have been removed in later versions. For example, support for `Taskvars.yml` files and version 2 Taskfiles are no longer available.
+
+Ensure your Taskfiles do not use any deprecated syntax or file formats. Review the [Deprecations Section](/changelog/release-notes-history/deprecations-notices) regularly to stay informed about features scheduled for removal.
+
+## Best Practices for Smooth Upgrades
+
+Before upgrading:
+
+- Validate your existing Taskfiles against the new schema version using `task --list` or validation commands.
+- Review deprecation notices and changelogs to identify potential breaking changes affecting your workflow.
+- Test your Taskfiles with the new Task version in a controlled environment to catch errors.
+- Leverage feature flags to opt-in to breaking changes gradually where applicable.
+
+When migrating schemas or changing Taskfiles, always keep backups and consider incremental changes to isolate issues.
+
+## Additional Resources & Related Documentation
+
+For extended guidance, consult:
+
+- [Deprecations & Migration Notices](/changelog/release-notes-history/deprecations-notices): Deep dive into all current deprecations.
+- [Taskfile and Task Data Models](/concepts/core-architecture/taskfile-and-task-models): Understand Taskfile structure to guide migrations.
+- [Guide to Tasks, Variables, and Dependencies](/guides/core-workflows/tasks-vars-dependencies): How to define and adjust tasks and variables.
+- [Using Includes and Taskfile Composition](/concepts/extensibility-variables-integration/includes-and-taskfile-composition): Effective use of included Taskfiles and variables.
+
+We continuously maintain this page to reflect new major releases and evolving migration pathways. Follow our release notes routinely to stay current and maintain seamless automation.
+
+<Source url="https://github.com/go-task/task" branch="main" paths={[{"path":"website/src/docs/deprecations/version-2-schema.md","range":"1-37"}]} />
+
+---
+
+**Note:** This page concerns only the breaking changes and upgrade aspects specific to Taskfiles and task execution. For broader changelog details, see the main [Changelog](/changelog/release-notes-history/version-history).
