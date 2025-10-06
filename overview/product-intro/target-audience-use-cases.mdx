@@ -1,0 +1,66 @@
+---
+title: "Who is Task For and When to Use It"
+description: "Task is ideal for developers, DevOps engineers, and teams aiming to standardize and automate project workflows across languages and platforms. Use Task when you need readable, maintainable automation without the complexity of older build tools—across CI/CD, local development, and cross-platform scripting."
+---
+
+## Understanding Who Task is For and When It Excels
+
+Task is designed to empower developers, DevOps engineers, and collaborative teams aiming to bring consistency and simplicity to their project automation. If you manage workflows that span multiple languages, platforms, or environments, Task offers a clean, YAML-based way to standardize these processes without the steep learning curve or complexity common in traditional build tools. Whether you are orchestrating scripts in a local development setup, integrating automation within CI/CD pipelines, or scripting cross-platform tasks, Task provides a user-friendly yet powerful framework to help you get there.
+
+The value of Task grows especially clear when you need automation that remains both human-readable and maintainable—a crucial factor for team environments or long-term projects where clarity and reliability trump intricate configurations. By combining variable interpolation, task dependencies, templating, and flexible execution control, Task makes managing complex workflows straightforward, reducing both errors and onboarding friction.
+
+## Defining Task’s Primary Users and Contexts
+
+At its core, Task is ideal for technical professionals and teams who want to replace or complement legacy tools with something more accessible and agile. Developers benefit from it by automating build, test, and deployment processes without having to jump through hoops with verbose or cryptic setups. DevOps professionals find Task useful for creating repeatable, version-controlled automation that integrates well with containerization and cloud environments. Teams appreciate its format for sharing and evolving project automation consistently, across platforms and across contributors.
+
+The typical contexts where Task shines include: local development environments aiming to streamline command execution, shared code repositories that require standardized build or deployment pipelines, and CI/CD workflows where task orchestration must be explicit yet flexible. Its cross-platform support and straightforward syntax make it especially suited for heterogeneous team environments where Windows, macOS, and Linux coexist.
+
+## How Task Facilitates Workflow Automation at a Glance
+
+Task operates through YAML-defined Taskfiles, which act as blueprints for your automation. These Taskfiles articulate tasks, their dependencies, variables, and commands. Tasks can invoke other tasks, allowing you to sequence or parallelize work easily. Variables and templating empower you to customize behavior dynamically based on context or environment.
+
+When you invoke Task, it parses the Taskfile, resolves dependencies, evaluates variables, and runs commands in the defined order or concurrency level. This model abstracts away the intricacies of shell scripting and manual process management, letting you focus on defining _what_ needs to be done instead of _how_.
+
+Users interact with Task primarily via the command line, executing tasks by name. The tool supports flexible overrides, including environment variables and command flags, enhancing adaptability without sacrificing transparency.
+
+## Bringing Task to Life Through Real-World Use
+
+Imagine a development team managing a monorepo with services each using different languages and runtimes. By employing Task, they create a root-level Taskfile that includes service-specific Taskfiles, each parameterized to handle its unique build and test commands. This setup allows developers to run `task service-a:build` or `task service-b:test` seamlessly, without switching environments or remembering complex commands.
+
+For a DevOps engineer, Task can automate packaging and deploying an application. They define variables for environments such as `DEV`, `STAGING`, and `PRODUCTION`, and tasks that chain building the app, running tests, and deploying to designated targets. The engineer can run a single Taskfile command that adapts to where it is run without needing separate scripts.
+
+Here is a concise example of using variables and dependencies inside a Taskfile:
+
+```yaml
+version: '3'
+tasks:
+  build:
+    desc: Build the application
+    cmds:
+      - go build -o app .
+
+  test:
+    desc: Run unit tests
+    deps: [build]
+    cmds:
+      - go test ./...
+
+  deploy:
+    desc: Deploy application
+    requires:
+      vars: [DEPLOY_ENV]
+    cmds:
+      - ./deploy.sh --env={{.DEPLOY_ENV}}
+```
+
+This example shows how Task handles dependencies (`test` depends on `build`) and requires a variable (`DEPLOY_ENV`) before running `deploy`.
+
+## Preparing to Use Task and What Comes Next
+
+Getting started with Task involves installing the CLI tool, creating a Taskfile, and defining your initial tasks. You can start with simple commands and gradually add complexity via variables, includes, conditional execution, and other features.
+
+For practical setup and installation instructions, visit the [Prerequisites & Installation](/getting-started/onboarding-essentials/prerequisites-installation) page. After that, dive into configuring your first Taskfile by exploring [Configuration: Your First Taskfile](/getting-started/onboarding-essentials/initial-configuration-setup). Once set up, the [First Run & Quick Validation](/getting-started/onboarding-essentials/run-and-validate) guide will help you verify your environment and task execution.
+
+By beginning with these steps, you’ll lay a solid foundation to leverage Task’s full potential tailored to your project’s specific automation needs.
+
+<Source url="https://github.com/go-task/task" paths={[{"path": "website/src/docs/experiments/index.md", "range": "1-180"}, {"path": "website/src/docs/guide.md", "range": "5-370"}]} />
