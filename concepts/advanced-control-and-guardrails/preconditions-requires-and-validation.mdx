@@ -1,0 +1,91 @@
+---
+title: "Preconditions, Requires, and Validation"
+description: "Understand how Task ensures that each task runs under the right conditions and with required parameters. This page covers preconditions, required variables (requires), and validation mechanisms that provide guardrails around task execution."
+---
+
+## Understanding Preconditions, Requires, and Validation in Task
+
+Ensuring that tasks run successfully and under the right conditions is essential for predictable automation. Task provides robust mechanisms—preconditions, required variables (requires), and validation—to create guardrails that verify the environment and inputs before a task executes. This prevents unexpected failures caused by missing prerequisites or invalid parameters, helping you build reliable, maintainable automation flows.
+
+### The Big Idea Behind Task Guardrails
+
+At its core, these guardrails establish a mental model where every task defines what it needs to run safely and correctly. Preconditions encode environment checks or shell commands you expect to be true before execution, such as verifying file existence or system state. Requires specify mandatory input variables a task demands, optionally limiting their values to predefined sets. Validation enforces these constraints at runtime, preventing tasks from running with missing or invalid data. Together, they form a safety net that short-circuits execution early, saving time and avoiding cascading errors.
+
+### How Preconditions Shape Task Execution
+
+Preconditions are declarative shell statements attached to tasks that Task executes to confirm readiness before running any commands. When a task has preconditions, Task runs each associated shell command in the task’s working directory. If any command exits with a failure, Task halts the task and surfaces a contextual error message defined by the user, helping pinpoint what check failed.
+
+For example, a precondition can be as simple as `test -f config.yaml` to confirm a configuration file’s presence. If this check fails, the task will not proceed, guarding against errors later in the workflow that might occur due to missing files.
+
+Task also supports customizing the failure message for clearer diagnostics. By combining these checks, users can build complex readiness assertions, like verifying multiple files or system states, ensuring the task's environment aligns with expectations before execution.
+
+### Enforcing Required Variables Through "Requires"
+
+Variables are the lifeblood of Task automation, customizing behavior dynamically. Requires explicitly declare which variables must be set for the task to run. This ensures your task receives all the inputs it depends on, whether from environment variables, command-line flags, or templated defaults.
+
+A required variable can be declared simply by name, implying its presence is mandatory. Optionally, you can enumerate allowed values, further constraining inputs to a safe set. This guards against unexpected or unsupported parameters that could lead to failures or unpredictable outcomes.
+
+If any required variable is missing or its value falls outside the allowed set, Task cancels the task and provides a clear error indicating which variables are missing or invalid, along with the permitted values if applicable.
+
+This validation is performed before actual task execution, ensuring your workflow won't run under invalid conditions.
+
+### Putting It All Together: Validation Workflow and User Guidance
+
+Before executing a task, Task performs these validations sequentially. It first checks that all preconditions pass, confirming the environment is ready. Then, it verifies that all required variables are set and conform to any enumerated restrictions.
+
+If any of these checks fail, Task interrupts execution and returns detailed error messages revealing the cause. This proactive approach aids in debugging and directs users to remedy configuration or environment issues.
+
+By embedding these guardrails in your Taskfiles, you create safer automation workflows that minimize failures and improve maintainability over time.
+
+<Tip>
+Always define meaningful and descriptive error messages for your preconditions. This makes troubleshooting faster and smoother for yourself and others who consume your Taskfiles.
+</Tip>
+
+### Common Pitfalls and Best Practices
+
+Users sometimes forget that required variables must be set explicitly before running tasks, or misunderstand the impact of enumerated allowed values. To avoid these issues, always:
+
+- Declare all variables your tasks depend on in the `requires` section.
+- Use enumerations judiciously to restrict inputs, especially when tasks behave differently based on parameter values.
+- Test preconditions under different environments to ensure they reflect the actual needs without false negatives.
+
+Failing to meet these prerequisites causes early task cancellation, which is intentional and serves to alert you before unintended actions occur.
+
+### Example Scenario
+
+Consider a deployment task which should only run if an SSH key file exists and requires a `DEPLOY_ENV` variable limited to `staging` or `production`:
+
+```yaml
+tasks:
+  deploy:
+    preconditions:
+      - sh: test -f ~/.ssh/id_rsa
+        msg: 'SSH key not found. Please set up your SSH credentials before deployment.'
+    requires:
+      vars:
+        - name: DEPLOY_ENV
+          enum: ["staging", "production"]
+    cmds:
+      - echo "Deploying to ${DEPLOY_ENV} environment..."
+      - ./deploy.sh
+```
+
+If the SSH key is missing, the task stops with a helpful message. If `DEPLOY_ENV` is undefined or set to an unsupported value, Task informs you upfront instead of blindly running the deployment.
+
+### Technical Validation Behind the Scenes
+
+Task implements these features by representing preconditions and requires internally as distinct structures. Each precondition contains a shell command and an optional failure message. Task executes these shell commands before task commands, aborting on first failure with detailed error logging.
+
+Required variables are checked against the current variable context, verifying presence and valid values according to enumerations. Missing or invalid variables generate specific error types that Task surfaces clearly to the user.
+
+This design ensures that validation logic is isolated, reusable across tasks, and extensible for future enhancements.
+
+<Source url="https://github.com/go-task/task" branch="main" paths={[{"path": "requires.go", "range": "1-58"},{"path": "precondition.go", "range": "1-39"}]} />
+
+---
+
+For a deeper understanding of Task's execution model and variable management, explore related documentation such as [Taskfile and Task Data Models](/concepts/core-architecture/taskfile-and-task-models) and [Variables and Environment Management](/concepts/extensibility-variables-integration/variables-and-environment-management). Also, the guide on [Using Preconditions, Requires, and Prompts](/guides/advanced-patterns/preconditions-requires-prompts) provides practical examples and patterns to further enhance your workflows.
+
+Building reliable automation requires stating explicit expectations. Preconditions and requires empower you to confidently define those expectations and avoid silent failures or unpredictable behavior.
+
+
