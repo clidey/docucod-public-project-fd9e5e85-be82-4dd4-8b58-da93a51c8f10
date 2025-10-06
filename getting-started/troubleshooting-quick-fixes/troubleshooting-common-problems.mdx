@@ -1,0 +1,73 @@
+---
+title: "Troubleshooting Common Installation & Startup Issues"
+description: "Diagnose and quickly resolve the most frequent setup and first-run errors, including environment misconfiguration, file permission issues, and unsupported platforms. Provides direct solutions and links to relevant deeper documentation when needed."
+---
+
+# Troubleshooting Common Installation & Startup Issues
+
+Setting up Task smoothly is crucial to unlocking efficient automation workflows. While installation and initial startup usually complete quickly, some scenarios—such as environment misconfiguration, file permission problems, or unsupported platforms—can cause unexpected errors. This guide walks you through diagnosing and swiftly resolving these frequent issues you may encounter during installation or on first use. Clear solutions and targeted references will help you get Task running reliably.
+
+## Verify Your Environment and Prerequisites
+
+Before tackling errors, it’s essential to confirm that your system satisfies Task’s prerequisites. Task runs on Linux, macOS, and Windows, and requires a shell environment compatible with its Go-based shell interpreter. Validate that your OS version is supported and that necessary tools (like Git for dynamic variables, if used) are installed. Also check your PATH settings to ensure Task executables are discoverable once installed.
+
+This verification step can prevent many startup problems caused by missing dependencies or misconfigured shells. For detailed platform requirements and installation methods, see the [Prerequisites & Installation](/getting-started/onboarding-essentials/prerequisites-installation) guide.
+
+## Resolving File Permission Issues
+
+A common source of startup trouble arises from file permission restrictions on Taskfiles and executable binaries. If Task cannot read your `Taskfile.yml` or lacks execute permissions on its binary, commands will fail silently or with misleading errors.
+
+To fix this, first ensure your `Taskfile.yml` and other configuration files have user read permissions (e.g., `chmod u+r Taskfile.yml`). Next, confirm the Task executable has the correct execution permission (`chmod +x $(which task)` on Unix-like systems).
+
+Windows users should verify they have file access permissions and that no antivirus software is blocking Task’s execution.
+
+If using symbolic links or mounted network drives, be mindful of permission inconsistencies that might interfere with Task accessing the files. Running Task with elevated privileges temporarily can help isolate permission problems.
+
+## Handling Unsupported Platforms or Architectures
+
+Task supports a range of operating systems and CPU architectures but will fail to run if invoked on unsupported platforms. Task leverages Go’s cross-compilation capabilities and supports common environments; however, niche or legacy systems may not be compatible.
+
+If you encounter an error indicating your platform is not recognized or supported, verify your OS and architecture against Task’s supported platforms. Consider running Task inside a Docker container or virtual environment on unsupported systems as a workaround.
+
+For tasks or commands restricted to particular platforms, check if your `Taskfile.yml` includes any `platforms` constraints that might be preventing task execution on your machine. See the [Guide section on platform-specific tasks](https://taskfile.dev/docs/guide/#platform-specific-tasks-and-commands) for more details.
+
+## Common Startup Errors and How to Interpret Them
+
+When starting Task, you might encounter several typical error messages. Understanding their meaning can quickly guide you to the appropriate fix:
+
+- **No Taskfile found (exit code 100)**: Task did not detect a `Taskfile.yml` or any supported variant in the current directory or parent directories. Ensure your Taskfile exists and is named correctly. Use the `--taskfile` flag to specify a custom filename or `--dir` to point to a directory with a Taskfile.
+
+- **Taskfile already exists (exit code 101) when initializing**: You tried to create a new Taskfile in a directory where one already exists. Use `task --list` to explore the existing tasks instead.
+
+- **Invalid or unparseable Taskfile (exit code 102)**: Your Taskfile contains syntax errors or unsupported YAML constructs. Review your file carefully or validate it against the [Taskfile schema reference](/reference/schema) to correct formatting errors.
+
+- **Task not found (exit code 200)**: The task you tried to run is not defined in the current Taskfile or any included Taskfiles. Use `task --list` to view available tasks.
+
+- **Command execution error (exit code 201)**: One of the commands in your task failed. Look at the command output and verify commands are present on your system and have correct permissions.
+
+- **Missing required variables (exit code 206)**: Your task demands variables that are not set in the Taskfile, environment, or CLI. Check your Taskfile's `requires` section and ensure you provide the needed values.
+
+Reviewing these exit codes and corresponding logs helps you locate issues precisely. For a full list of exit codes and their meanings, see the [CLI reference](/reference/cli#exit-codes).
+
+## Quick Fix Steps
+
+After diagnosing the problem, try the following pragmatic tips to fix common issues:
+
+- Run `task --version` to verify your Task installation works and shows the expected version.
+- Use `task --list` to ensure Task correctly reads your Taskfile and lists tasks.
+- Confirm your `Taskfile.yml` is valid YAML and conforms to schema version 3.
+- Clear your Task temp directories if corrupted by deleting `.task` in your project root or setting `TASK_TEMP_DIR` to a new path.
+- If dynamic variables or shell commands fail, verify your shell environment variables and PATH are set correctly.
+- Try running your commands manually in a terminal to isolate shell compatibility issues.
+
+<Tip>
+If you suspect a caching or fingerprinting problem, run with the `--force` or `-f` flag to bypass up-to-date checks.
+</Tip>
+
+## Getting Further Help
+
+When deeper investigation is needed, consult Task’s broader documentation: the [Getting Started Guide](/getting-started), [Command Line Interface Reference](/reference/cli), and [Taskfile Schema](/reference/schema) provide thorough coverage of usage and configuration. For community assistance or to report bugs, visit the [Task GitHub repository](https://github.com/go-task/task).
+
+This troubleshooting page fits into the onboarding flow after installation and prior to crafting your first Taskfile. Returning to the Installation Guide or Configuration Reference will provide targeted support when setup problems persist.
+
+<Source url="https://github.com/go-task/task" branch="main" paths={[{"path": "website/src/docs/getting-started/onboarding-essentials/prerequisites-installation.mdx", "range": "1-50"},{"path": "website/src/docs/reference/cli.md", "range": "100-200"}]} />
