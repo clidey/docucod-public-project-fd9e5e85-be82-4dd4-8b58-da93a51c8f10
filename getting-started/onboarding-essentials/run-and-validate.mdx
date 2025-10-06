@@ -1,0 +1,111 @@
+---
+title: "First Run & Quick Validation"
+description: "Run your first task using the CLI, verify that installation and configuration are working, and validate expected outputs. This page gives new users confidence that their setup is correct with simple commands and what-to-expect output examples."
+---
+
+## Running Your First Task
+
+Having configured your Taskfile, the next step is to run a task to confirm your setup works as expected. This section guides you through executing your first task via the Task CLI, demonstrates what output to expect, and explains how to validate that everything is correctly installed and configured.
+
+By running a task, you ensure that Task can locate your Taskfile, resolve variables, execute commands or scripts, and manage dependencies seamlessly. This immediate feedback helps you gain confidence that your environment is correctly set up and ready for automation.
+
+## How to Run a Task and Validate Output
+
+To run a task, simply invoke the `task` command followed by the task's name in your terminal. If no task name is provided, Task implicitly runs the `default` task.
+
+<Steps>
+<Step title="Run the default task">
+Open your terminal in the directory containing your `Taskfile.yml` and execute:
+
+```shell
+task
+```
+
+If your `Taskfile.yml` defines a `default` task that echoes a variable or prints text, you will see the output printed directly. For example, with a default task echoing "Hello, World!" the output should resemble:
+
+```
+Hello, World!
+```
+
+</Step>
+<Step title="Run a specific task">
+To run a named task, specify its name explicitly. For example, if you created a task called `build` to compile a Go program, run:
+
+```shell
+task build
+```
+
+This runs the `build` task's command(s). Check the terminal output for success messages or build artifacts as configured.
+
+</Step>
+<Step title="Run a task from a custom Taskfile or directory">
+If your Taskfile is named differently or located in another directory, use the relevant flags:
+
+- To specify a different Taskfile name:
+
+```shell
+task --taskfile Custom.yml default
+```
+
+- To run a Taskfile located in a subdirectory:
+
+```shell
+task --dir ./subdirectory default
+```
+
+Make sure you replace `default` with the name of the task you want to run.
+
+</Step>
+</Steps>
+
+## What to Expect: Verifying Successful Task Execution
+
+Successful task runs will show the commands being executed (unless silent mode is enabled) followed by the expected output from each command. For instance, a task printing a greeting will print exactly that.
+
+If a task is up to date based on fingerprinting or status checks, you may see a message like:
+
+```
+task: Task "<task-name>" is up to date
+```
+
+This indicates that Task detected no changes requiring rerunning the task and skipped execution accordingly.
+
+If errors occur, such as missing required environment variables or syntax errors in commands, Task will output descriptive error messages pinpointing the issue to help you quickly correct it.
+
+To confirm your setup:
+
+- Ensure the task command output matches expected results.
+- If you depend on task output files, verify those files were created or updated.
+- Pay attention to any error or warning messages printed during execution.
+
+## Troubleshooting Common Pitfalls
+
+Tasks may fail to run correctly in some scenarios. Below are some common situations and how to address them:
+
+- **Task does not exist:** You may see an error if the task name is misspelled or missing. Use `task --list` to verify available tasks.
+
+- **Internal tasks cannot be run:** Tasks marked `internal` are not callable directly. Review your Taskfile if this is unexpected.
+
+- **Required variables missing:** Tasks with required variables will error if those variables are unset. Provide them via CLI or environment variables.
+
+- **Preconditions not met:** Some tasks have precondition checks which, if failing, will prevent execution unless forced.
+
+- **Platform restrictions:** Tasks restricted to certain OS/architectures will skip on others with a verbose message.
+
+If you encounter unexplained failures or odd behavior, enabling verbose mode (`task -v`) often provides additional context.
+
+<Tip>
+Use `task --list` or `task -l` to enumerate available tasks, which helps avoid typos or confusion about task names before running.
+</Tip>
+
+## Next Steps: Explore Task's Full Potential
+
+After successfully running your first task and validating that your setup works, explore more advanced features:
+
+- Dive deeper into [Defining Tasks, Variables, and Dependencies](/guides/core-workflows/tasks-vars-dependencies) for richer automation workflows.
+- Learn how to include other Taskfiles and manage environments in [Taskfile Includes and Composition](/concepts/extensibility-variables-integration/includes-and-taskfile-composition).
+- Understand guardrails like preconditions, requires, and prompts in [Preconditions, Requires, and Validation](/concepts/advanced-control-and-guardrails/preconditions-requires-and-validation).
+
+These topics will help you build robust, maintainable task automation tailored to your projects.
+
+<Source url="https://github.com/go-task/task" paths={[{"path": "cmd/task/task.go", "range": "30-200"}]} />
