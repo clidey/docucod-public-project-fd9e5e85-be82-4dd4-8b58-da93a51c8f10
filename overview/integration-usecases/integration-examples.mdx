@@ -1,0 +1,85 @@
+---
+title: "Integrating Task with Your Workflow"
+description: "Task is designed to integrate into local and CI environments, supporting multiple platforms and seamless CLI invocation. Learn about environment variable management, configuration layering, and extensibility for advanced custom workflows."
+---
+
+## Integrating Task with Your Workflow
+
+In modern software development, flexibility and seamless automation are essential. Task is designed to fit naturally into both local and continuous integration (CI) environments, enabling you to automate your workflows with minimal friction. Whether you're running tasks on your development machine or in a CI pipeline, Task offers the environment variable management, layered configuration, and extensibility you need to maintain control and efficiency.
+
+## What Integration Means for You
+
+At its core, Task integrates into your workflow by understanding and adapting to where and how it runs. This means you can invoke Task consistently via its CLI across multiple platforms, with the confidence that your environment variables and configurations will resolve correctly. Task's layered configuration model allows you to customize behavior globally for your machine or narrowly for a specific project, avoiding duplication and ensuring flexibility.
+
+This page focuses on the integration aspects crucial to your workflow: handling environment variables across scopes, composing configuration files from various layers, and extending Task to fit sophisticated automation needs.
+
+## How Environment Variables and Configurations Work Together
+
+Task relies on environment variables extensively and supports layered configuration that prioritizes environment-specific values. When you run a task, Task reads environment variables from several sources, merging them with configuration files and command-line flags, with precedence given to environment variables by default. This approach allows you to override settings flexibly, whether you want machine-wide defaults, per-project customization, or ephemeral settings injected via your CI.
+
+You configure environment variables either as globals or scoped to individual tasks within your Taskfile. Additionally, Task supports `.env` files at both global and task levels for loading environment variables, ensuring that you can keep sensitive credentials or environment-specific settings separate from your Taskfiles.
+
+The ability to cascade configuration files—from your system’s XDG config folder through your home directory and down into the current project directory—means you don’t have to duplicate common settings. Instead, Task merges all applicable files, respecting the priority order to resolve conflicts and define the final behavior.
+
+```yaml
+env:
+  GLOBAL_VAR: "global-value"
+
+tasks:
+  build:
+    env:
+      BUILD_ENV: "production"
+    cmds:
+      - echo "Global: $GLOBAL_VAR, Build: $BUILD_ENV"
+```
+
+This example illustrates how global and task-specific environment variables combine seamlessly, enabling predictable and context-aware command executions.
+
+## Composing Advanced Workflows with Includes and Variables
+
+Task supports sophisticated workflow compositions through its includes feature, which lets you break down automation into modular, reusable Taskfiles. This capability makes it easy to integrate different parts of your automation or to share common task definitions across multiple projects, while controlling variable scopes via included namespaces.
+
+By passing variables into included Taskfiles, you can dynamically customize workflows and isolate configurations per included module, avoiding collisions and improving clarity. For example, invoking tasks from multiple included Taskfiles with distinct variables allows tailored execution without duplicating code.
+
+```yaml
+version: "3"
+
+includes:
+  included1:
+    taskfile: include/Taskfile.include1.yml
+    vars:
+      VAR_1: included1-var1
+  included2:
+    taskfile: include/Taskfile.include2.yml
+    vars:
+      VAR_1: included2-var1
+  included3:
+    taskfile: include/Taskfile.include3.yml
+
+tasks:
+  task1:
+    cmds:
+      - task: included1:task1
+      - task: included2:task1
+      - task: included3:task1
+```
+
+This composition example demonstrates how each included Taskfile can operate with its own context, increasing modularity and reducing duplication.
+
+## Extensibility and CLI-Driven Control
+
+Task is designed as a CLI-first tool that fits naturally into scripts, CI pipelines, and interactive developer environments. You can invoke it directly on multiple platforms without special tooling, and control its behavior extensively using environment variables, configuration layering, and command-line flags.
+
+The integration features allow you to override configurations at runtime, pass environment variables explicitly, and incorporate custom scripts within your tasks for maximum adaptability. For example, setting the `TASK_TEMP_DIR` environment variable can redirect Task’s working directory for its cache and fingerprint files, making it easier to comply with environment constraints.
+
+Managing this interplay ensures that Task reacts appropriately to local development contexts, shared CI environments, or containerized runtimes, making automation reliable and reproducible.
+
+## Getting Started with Integration
+
+To integrate Task into your workflow, start by familiarizing yourself with environment variable management through [Variables and Environment Management](/concepts/extensibility-variables-integration/variables-and-environment-management) and learn about configuration layering in [Configuration Reference](/reference/config/).
+
+Next, explore [Including Other Taskfiles](https://taskfile.dev/guide/#including-other-taskfiles) to organize complex projects and [Command Line Interface Reference](/reference/cli/) for flexible command invocations.
+
+By combining these capabilities, you can build robust automation pipelines that organically extend from your local environment into CI and beyond.
+
+<Source url="https://github.com/go-task/task" branch="main" paths={[{"path": "website/src/docs/guide.md", "range": "70-238"},{"path": "website/src/docs/reference/config.md", "range": "1-90"},{"path": "website/src/docs/reference/cli.md", "range": "1-230"},{"path": "testdata/include_with_vars/Taskfile.yml", "range": "1-20"}]} />

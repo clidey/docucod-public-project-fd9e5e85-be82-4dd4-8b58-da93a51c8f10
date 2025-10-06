@@ -1,0 +1,67 @@
+---
+title: "My Taskfile integration with other tools isn't working—how should I debug it?"
+description: "A troubleshooting flow for resolving common token, environment, and platform mismatches when integrating Task with other CI/CD systems, editors, or scripts. Guidance includes verifying environment variable handling and diagnosing cross-platform issues."
+---
+
+## Debugging Task Integration Issues with Other Tools
+
+Integrating Task with CI/CD systems, editors, or automation scripts can sometimes be challenging due to subtle differences in environment variable handling, path resolutions, or platform discrepancies. This FAQ provides practical guidance to help you diagnose and resolve common token, environment, and platform mismatch problems that often surface during such integrations. By understanding how Task processes environment variables and platform filters, you can streamline interoperability and ensure your automation workflows run reliably across diverse contexts.
+
+### Common Causes of Integration Failures
+
+When Task appears not to behave as expected in external environments, the root causes typically involve environment variable mismatches, platform differences, or misconfigurations in how your external tool invokes Task. For example, CI systems might override or fail to pass through expected variables, or editors might launch commands in shells that isolate environment settings. To meet these challenges, start by verifying the environment variables Task receives and ensure platform constraints align with the target system.
+
+One recurrent issue is Task not detecting environment variables set externally or in upstream scripts. Since Task merges OS-level environment variables with those declared in the Taskfile or task-level `env` sections, it is crucial to check for naming conflicts or precedence effects where external environment vars might be overridden silently. Task’s environment layering follows a defined order that can be misaligned if wrappers or scripts fail to export variables correctly.<Source url="https://github.com/go-task/task" branch="main" paths={[{"path": "internal/env/env.go", "range": "1-74"}]} />
+
+Platform filtering is another key integration factor. If your Taskfile uses platform-specific task or command filters (e.g., `platform: linux/amd64`), verify that Task evaluates the platform as expected in your external environment. Mismatches often occur when scripts execute on agents differing from local assumptions, or when environment variables like `GOOS` and `GOARCH` have unexpected values. This mismatch leads Task to skip tasks or commands due to unresolved platform constraints. Confirm your platform configuration aligns with Task’s recognized values, which reflect Go’s `GOOS` and `GOARCH` standards.<Source url="https://github.com/go-task/task" branch="main" paths={[{"path": "taskfile/ast/platforms.go", "range": "1-102"}]} />
+
+### Verifying Environment Variables and Platform Context
+
+A practical first step is to add debugging commands in your Taskfile or external script to output environment variables and platform information. For instance, a simple diagnostic task can print all environment variables Task sees along with the platform settings. This confirms what Task receives and whether variables critical to your workflow are present or missing:
+
+```yaml
+tasks:
+  diagnose:
+    desc: "Print environment vars and platform info"
+    cmds:
+      - env
+      - echo "Platform OS: {{.OS}}"
+      - echo "Platform Arch: {{.Arch}}"
+```
+
+Running this task within the external integration context highlights discrepancies—missing variables indicate the need to adjust how your CI or editor launches Task (e.g., explicitly passing environment vars or sourcing profiles). Platform mismatches suggest checking the build agent or environment initialization.
+
+Additionally, pay attention to how environment variables are named and scoped. Task internally prefixes some variables (e.g., `TASK_` prefix) used for internal purposes and avoids clobbering the user's environment. Understanding these semantics helps prevent unintended overrides or ignored variables during Task runs.
+
+### Troubleshooting Platform and Environment Integration Pain Points
+
+Many problems arise from subtle environmental nuances when moving between local development and remote automation:
+
+- External tools sometimes run Task with a clean shell or reduced environment, causing variables like `PATH`, `GOOS`, or `GOARCH` to be undefined or set differently.
+- Environment variable types and serialization affect variable propagation; only strings, booleans, and numbers are allowed. Complex types might be ignored silently.
+- Platform filters require exact matches as Task parses them strictly; misspelled OS or architecture identifiers cause tasks or commands not to run.
+- When layering environment variables, precedence might prevent external settings from applying if Taskfile or task-level `env` variables take priority.
+
+As a preventative tactic, always test your Taskfile in the minimal environment that mimics your target integration. Use Task’s verbose mode (`-v`) to examine how variables and commands resolve during execution. Check that shell startup scripts or profile files source correctly for your automation environment.
+
+### Best Practices for Smooth Integration
+
+Achieving seamless integration involves a combination of transparent environment management and alignment of platform constraints:
+
+- Explicitly pass required environment variables from CI/CD tools or script wrappers to Task using the environment management features described in the documentation.
+- Avoid assuming implicit environment presence; define critical variables either in the Taskfile `vars` or `env` sections or ensure your external environment exports them.
+- Use platform filters judiciously, and avoid overly restrictive OS/Arch constraints unless necessary. Validate your platform strings with Task’s known values.
+- Leverage Task’s includes and modular Taskfile composition to isolate environment and platform-specific configurations, making integration contexts clearer and easier to debug.
+
+Following these practices reduces friction when connecting Task with external systems and ensures your automation is robust, portable, and maintainable.
+
+### Additional Help and Resources
+
+For deeper troubleshooting, consult related pages that complement this guidance, including the execution failure FAQ, environment management, and platform filtering concepts. Collectively, these guides provide a holistic view of Task’s runtime environment and advanced control mechanisms to empower you to diagnose and eliminate integration issues efficiently.
+
+ - [Troubleshooting Task Execution Failures](/faq/common-issues-solutions/troubleshooting-task-execution-failures)
+ - [Variables and Environment Management](/concepts/extensibility-variables-integration/variables-and-environment-management)
+ - [Platform Filtering and Multi-Platform Taskfiles](/guides/advanced-patterns/multi-platform-taskfiles)
+ - [Integrating Task with Your Workflow](/overview/integration-usecases/integration-examples)
+
+By methodically verifying environments, confirming platform compatibility, and using Task’s detailed logging and error messages, you will power through integration challenges and unlock the full potential of Task automation in your toolchains.

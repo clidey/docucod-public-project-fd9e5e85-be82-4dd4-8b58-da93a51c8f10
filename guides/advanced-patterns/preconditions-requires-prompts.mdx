@@ -1,0 +1,166 @@
+---
+title: "Using Preconditions, Requires, and Prompts"
+description: "Master advanced control flow in your automation: set up preconditions, require variables before running tasks, and add interactive user prompts for safer and more robust workflows."
+---
+
+# Using Preconditions, Requires, and Prompts
+
+In complex automation workflows, safeguarding the execution of tasks ensures reliable, safe, and predictable outcomes. This page guides you through mastering advanced control flow in Task by implementing preconditions that verify environment or system states, requires checks that validate necessary variables before execution, and user prompts that add interactive confirmations to your runs. Harnessing these features empowers you to build workflows that prevent accidental runs, handle unmet requirements gracefully, and engage users when executing potentially sensitive commands.
+
+---
+
+## Validating Execution Environment with Preconditions
+
+Preconditions are shell commands or tests that Task runs before a task starts. They act as gatekeepers: if any precondition fails (returns a non-zero exit), Task stops the task and any depending sub-tasks from running. This prevents wasted work or dangerous operations in unsuitable environments.
+
+You can define preconditions simply as shell commands or with a custom failure message to help users understand what needs fixing. For example, a precondition might check for the presence of a configuration file or confirm a specific version of a tool is installed.
+
+If a precondition fails, Task outputs a clear message describing the problem and exits with an error. This immediate feedback lets users fix the issue before retrying.
+
+### How Preconditions Work
+
+- Task evaluates all listed preconditions sequentially before running the task.
+- If any precondition returns failure, the task run is halted with an error.
+- Dependent tasks that rely on a failing task will not run.
+- Preconditions do not run their commands if `--force` is specified on the CLI; this overrides precondition checks.
+
+Here is an example that confirms a `.env` file exists before executing:
+
+```yaml
+version: '3'
+tasks:
+  deploy:
+    preconditions:
+      - test -f .env
+    cmds:
+      - echo "Deploying with environment variables from .env"
+```
+
+You can further customize the failure response with messages:
+
+```yaml
+preconditions:
+  - sh: 'test -f config.yaml'
+    msg: 'Configuration file config.yaml is missing. Please create it.'
+```
+
+<Tip>
+Preconditions ensure your automation only runs in the right setup, preventing costly mistakes early.
+</Tip>
+
+<Source url="https://github.com/go-task/task" paths={[{"path": "taskfile/ast/precondition.go", "range": "1-52"}]} />
+
+---
+
+## Enforcing Required Variables with Requires
+
+While preconditions inspect the environment outside of Task itself, requires focuses on verifying variables needed by your task are properly set. This might include environment variables, CLI-passed variables, or task-level variables.
+
+By declaring required variables, you make your Taskfile more robust: it fails early and clearly if users forget to provide important data or provide values that don’t fit expected parameters.
+
+### Using `requires` to Check Variables
+
+You specify `requires` under a task, listing variable names that must be set (non-empty) before the task runs. Task will check both environment variables and Taskfile variables in scope.
+
+```yaml
+requires:
+  vars: [IMAGE_NAME, IMAGE_TAG]
+```
+
+This example mandates that `IMAGE_NAME` and `IMAGE_TAG` exist, or Task aborts with an error explaining which required variable is missing.
+
+### Validating Variable Values Against Allowed Options
+
+Sometimes you want to restrict variables to specific values. With `requires`, you can declare an enum of allowed strings for a variable, giving clear guardrails and preventing misconfigurations:
+
+```yaml
+requires:
+  vars:
+    - name: ENV
+      enum: [dev, staging, prod]
+```
+
+On task execution, if the variable `ENV` is not set to one of 'dev', 'staging', or 'prod', Task will raise an error and stop.
+
+This check rejects unexpected inputs and encourages users to provide valid parameters.
+
+### Notes on Required Variables
+
+- Variables explicitly set to empty strings pass the check.
+- Requires validation happens before task command compilation, so undefined values are caught early.
+- Combined requires checks improve automation safety by preventing accidental usage with incomplete parameters.
+
+<Tip>
+Consider pairing requires checks with helpful error messages or descriptions in your tasks to guide users towards correct variable usage.
+</Tip>
+
+<Source url="https://github.com/go-task/task" paths={[{"path": "taskfile/ast/requires.go", "range": "1-52"}]} />
+
+---
+
+## Adding Interactive Confirmation with Prompts
+
+For commands that might alter critical environments or perform irreversible actions, adding a confirmation prompt helps introduce a safety net. Task supports interactive `prompt` messages that ask users to acknowledge before continuing.
+
+### How Prompts Function
+
+Before running a prompt-enabled task, Task displays the prompt(s) and waits for a ‘y’ or ‘n’ input. If the user denies (or gives a negative response), Task halts and returns an exit code signifying prompt rejection.
+
+Prompts can be a single string or a list of messages, building a multi-step confirmation.
+
+```yaml
+tasks:
+  dangerous:
+    prompt: "This is a destructive operation. Are you sure you want to continue?"
+    cmds:
+      - rm -rf important_directory/
+```
+
+### Multi-Prompt Example
+
+```yaml
+tasks:
+  careful-task:
+    prompt:
+      - "This will overwrite your deployment."
+      - "Are you really sure?"
+    cmds:
+      - deploy_script.sh
+```
+
+If the prompts are not approved, Task exits with code 205 (`TASK_PROMPT_DENIED`).
+
+### Skipping Prompts
+
+To automate workflows or non-interactive environments (like CI), use the `--yes` or `-y` flag on the CLI to automatically approve prompts and avoid hanging.
+
+<Tip>
+Tasks with prompts fail by default in non-interactive environments since there is no way to provide input, so always use `--yes` when running scripts in CI.
+</Tip>
+
+<Source url="https://github.com/go-task/task" paths={[{"path": "taskfile/ast/prompt.go", "range": "1-33"}]} />
+
+---
+
+## Bringing It All Together: Workflow Safety and Clarity
+
+Preconditions, requires, and prompts form a powerful triad for safe and controlled task execution in Task:
+
+- **Preconditions** verify environmental readiness and external constraints before tasks run.
+- **Requires** check that necessary variables are set and adhere to defined enumerations.
+- **Prompts** require explicit user confirmation before executing sensitive commands.
+
+Together, they reinforce automation reliability, help prevent errors caused by missing setup or configuration, and introduce intentionality in risky operations.
+
+When designing your Taskfiles, thoughtfully apply these controls where appropriate. For example, a deployment task might have:
+
+- Preconditions checking for the existence of secrets.
+- Requires confirming target environment variables.
+- Prompts asking for confirmation before proceeding.
+
+This layered approach results in a workflow that is resilient, transparent, and user-aware.
+
+---
+
+For more detailed exploration of Task’s variables, control flow, and task definitions, see the [Defining Tasks, Variables, and Dependencies](/guides/core-workflows/tasks-vars-dependencies) guide and the [Preconditions, Requires, and Validation Concepts](/concepts/advanced-control-and-guardrails/preconditions-requires-and-validation).
+

@@ -1,0 +1,100 @@
+---
+title: "Taskfile and Task Data Models"
+description: "Explore the Taskfile's structure and the data models representing individual tasks, including how commands, dependencies, variables, and conditions are defined and composed. Learn how Task files are parsed and how their content shapes the automation workflow."
+---
+
+# Taskfile and Task Data Models
+
+The Taskfile is the heart of Task automation, serving as a declarative blueprint written in YAML that defines tasks, their commands, dependencies, variables, and conditions. Understanding how the Taskfile is structured and how its data models represent individual tasks empowers users to create effective automation workflows tailored to their projects.
+
+## The Mental Model Behind Taskfiles and Tasks
+
+At its core, a Taskfile captures a structured list of automation instructions organized as "tasks." Each task is a self-contained unit representing a collection of steps to perform an operation, from building software to running tests or deploying applications. Tasks consist of commands to execute, dependencies specifying prerequisite tasks, variables to parameterize behavior, and controls like conditions and platform restrictions to ensure correct and context-aware execution.
+
+This mental model encourages thinking of automation as a graph of tasks where each node is an actionable step, and edges express dependency relationships. This simplifies complex workflows by modularizing commands into reusable, composable tasks.
+
+## Taskfile: The Container of Automation Definitions
+
+The Taskfile data model represents the entire YAML document. It holds global configuration and namespaces that organize the overall automation structure. Key properties include the schema version, task execution method, global variables, environment settings, shell options, included Taskfiles, and the central collection of tasks.
+
+Merging multiple Taskfiles is supported to allow inclusion and composition across modular files. This enables users to build complex automation workflows by breaking them into manageable components that are linked together under namespaces or flattened for convenience.
+
+The Taskfile structure promotes clarity and scalability:
+
+- **Versioning:** Ensures compatibility with Task's schema and features.
+- **Includes:** Allow importing external Taskfiles with their own variables, namespaces, and tasks.
+- **Global Settings:** Such as shell options (`set`, `shopt`), environment variables (`env`), and output preferences.
+- **Tasks:** The core definitions detailing commands and orchestration.
+
+The model is designed to be extensible and maintainable, facilitating progressive mastering of automation complexity as projects grow.
+
+## Task: Defining Individual Units of Work
+
+Each task within the Taskfile is an instance of the Task model, capturing a wealth of details beyond a simple command list. A task can define:
+
+- **Commands (`cmds` or `cmd`):** The shell commands or references to sub-tasks to execute sequentially.
+- **Dependencies (`deps`):** Other tasks that must be completed before this task runs, executed in parallel.
+- **Variables:** Task-specific variables that override global ones or those passed down by caller tasks.
+- **Environment:** Environment variables scoped to the task.
+- **Conditions:** Such as `preconditions`, `status` checks, and `requires` to guard execution or enforce required variables.
+- **Metadata:** Including human-readable `desc` and `summary` for documentation and CLI help.
+- **Control Properties:** Like `silent` mode for output control, `internal` tasks hidden from CLI, and platform restrictions to run conditionally based on OS or architecture.
+- **Looping and Repetition:** Supported through `for` constructs to iterate commands or dependencies over lists, matrices, or variables.
+
+By designing tasks rich with metadata and control options, users gain fine-grained command over automation behavior, enabling safe, flexible, and contextual execution in diverse environments.
+
+## Composing Commands and Task Calls
+
+Commands within tasks can be simple shell commands or calls to other tasks with their own variables and silent mode toggles. The command model supports deferred commands (`defer`) that run on task completion regardless of failure to enable cleanup or finalization steps.
+
+The abstraction of tasks calling other tasks via commands promotes reuse and serial execution when needed, contrasting dependency tasks that execute in parallel. This design balances speed and ordering requirements elegantly.
+
+Commands also support individual shell options (`set`, `shopt`), platform filters, and error-ignoring behavior (`ignore_error`), allowing per-command customization within tasks.
+
+## Variables and Their Resolution
+
+Variables form a crucial layer in the Taskfile and task data models, allowing users to parameterize commands dynamically. Variables can be static values, outputs from shell commands (`sh`), references to other variables (`ref`), or maps, expanding their utility.
+
+Variable scoping follows a clear precedence chain:
+
+1. Variables passed through task calls.
+2. Task-specific variables.
+3. Variables from included Taskfiles.
+4. Variables from the parent Taskfile.
+5. Global variables.
+6. Environment variables.
+
+This allows flexible overrides and safer reuse of task templates.
+
+Taskfile variables can include dynamic content using Go templating syntax, referencing special variables like `.TASK`, `.CLI_ARGS`, and others for rich, conditional automation logic.
+
+## Conditions and Guardrails
+
+To ensure tasks run only when appropriate, the Task and Taskfile models incorporate several mechanisms:
+
+- **Preconditions:** Commands or conditions that must all succeed before a task runs, or else the task fails with an error.
+- **Status Checks:** Commands that indicate if a task’s outputs are current, enabling skipping of tasks when sources haven't changed.
+- **Requires:** Validation that certain variables exist and optionally match a predefined enum of values before execution.
+
+These safeguards prevent unnecessary work and avoid execution in incomplete or misconfigured environments, making automation more reliable and self-documenting.
+
+## How These Models Interact in a Workflow
+
+When Task runs a command requesting a task:
+
+1. **Load Taskfile(s):** The YAML files are read and parsed into the Taskfile and included Taskfiles, which are merged into a comprehensive model.
+2. **Resolve Variables:** Variables are merged and resolved according to the precedence rules, including those passed by the CLI or from caller tasks.
+3. **Check Conditions:** Preconditions and requires validations run to ensure the task can proceed.
+4. **Run Dependencies:** Declared dependencies run in parallel.
+5. **Execute Task Commands:** Commands are executed sequentially, respecting any platform restrictions, silent flags, shell options, and defer steps.
+6. **Handle Deferred Steps:** Commands marked `defer` run even if the main commands fail, supporting cleanup.
+
+This flow enables users to craft expressive, maintainable, and efficient Taskfiles to orchestrate complex automation pipelines with confidence.
+
+---
+
+<Tip>
+Understanding the Taskfile and Task data models is fundamental to mastering Task automation. This knowledge unlocks the ability to author Taskfiles that are scalable, maintainable, and tailored to your project's needs.
+</Tip>
+
+<Source url="https://github.com/go-task/task" paths={[{"path": "taskfile/ast/taskfile.go", "range": "1-108"},{"path": "taskfile/ast/task.go", "range": "1-154"},{"path": "taskfile/ast/cmd.go", "range": "1-80"},{"path": "task/call.go", "range": "1-15"}]} />

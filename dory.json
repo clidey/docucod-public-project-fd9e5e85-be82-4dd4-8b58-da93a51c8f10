@@ -1,0 +1,165 @@
+{
+  "background": {
+    "decoration": "gradient"
+  },
+  "colors": {
+    "dark": "#1E3A8A",
+    "light": "#60A5FA",
+    "primary": "#60A5FA"
+  },
+  "favicon": "/favicon.svg",
+  "fonts": {
+    "family": "Montserrat",
+    "format": "woff2",
+    "source": "https://fonts.gstatic.com/s/googlesansflex/v5/t5sJIQcYNIWbFgDgAAzZ34auoVyXkJCOvp3SFWJbN5hF8Ju1x6sKCyp0l9sI40swNJwGpVd4AZzz0v6lJ4qFXNZhGjLvDSkV4USKMo6qQzwliVdHAy9jxTDHg_ugnAakpwGc-cxgUqDCIUI.woff2"
+  },
+  "icons": {
+    "library": "fontawesome"
+  },
+  "logo": {
+    "dark": "./logo/logo.svg",
+    "light": "./logo/logo.svg"
+  },
+  "name": "Task",
+  "navigation": {
+    "tabs": [
+      {
+        "groups": [
+          {
+            "group": "Product Overview \u0026 Value",
+            "pages": [
+              "overview/product-intro/intro-product-value",
+              "overview/product-intro/target-audience-use-cases"
+            ]
+          },
+          {
+            "group": "Architecture \u0026 Core Concepts",
+            "pages": [
+              "overview/core-concepts-architecture/architecture-overview",
+              "overview/core-concepts-architecture/core-concepts-glossary",
+              "overview/core-concepts-architecture/feature-quick-tour"
+            ]
+          },
+          {
+            "group": "Ecosystem \u0026 Integration",
+            "pages": [
+              "overview/integration-usecases/integration-examples"
+            ]
+          }
+        ],
+        "tab": "Overview"
+      },
+      {
+        "groups": [
+          {
+            "group": "Onboarding Essentials",
+            "pages": [
+              "getting-started/onboarding-essentials/prerequisites-installation",
+              "getting-started/onboarding-essentials/initial-configuration-setup",
+              "getting-started/onboarding-essentials/run-and-validate"
+            ]
+          },
+          {
+            "group": "Troubleshooting \u0026 Quick Fixes",
+            "pages": [
+              "getting-started/troubleshooting-quick-fixes/troubleshooting-common-problems"
+            ]
+          }
+        ],
+        "tab": "Getting Started"
+      },
+      {
+        "groups": [
+          {
+            "group": "Core Workflows",
+            "pages": [
+              "guides/core-workflows/quickstart-create-taskfile",
+              "guides/core-workflows/tasks-vars-dependencies",
+              "guides/core-workflows/taskfile-environment-best-practices"
+            ]
+          },
+          {
+            "group": "Advanced Patterns \u0026 Real-World Scenarios",
+            "pages": [
+              "guides/advanced-patterns/multi-platform-taskfiles",
+              "guides/advanced-patterns/matrix-and-for-loops",
+              "guides/advanced-patterns/preconditions-requires-prompts"
+            ]
+          },
+          {
+            "group": "Integrations \u0026 Common Scenarios",
+            "pages": [
+              "guides/integrations-scenarios/ci-cd-automation",
+              "guides/integrations-scenarios/performance-optimizations"
+            ]
+          }
+        ],
+        "tab": "Guides"
+      },
+      {
+        "groups": [
+          {
+            "group": "Core Architecture",
+            "pages": [
+              "concepts/core-architecture/taskfile-and-task-models",
+              "concepts/core-architecture/execution-flow-and-architecture"
+            ]
+          },
+          {
+            "group": "Extensibility, Variables, and Integration",
+            "pages": [
+              "concepts/extensibility-variables-integration/variables-and-environment-management",
+              "concepts/extensibility-variables-integration/includes-and-taskfile-composition"
+            ]
+          },
+          {
+            "group": "Advanced Task Control and Guardrails",
+            "pages": [
+              "concepts/advanced-control-and-guardrails/preconditions-requires-and-validation",
+              "concepts/advanced-control-and-guardrails/platforms-matrix-and-conditional-execution"
+            ]
+          }
+        ],
+        "tab": "Concepts"
+      },
+      {
+        "groups": [
+          {
+            "group": "Release Notes \u0026 Upgrade Guidance",
+            "pages": [
+              "changelog/release-notes-history/version-history",
+              "changelog/release-notes-history/breaking-changes-upgrade",
+              "changelog/release-notes-history/deprecations-notices"
+            ]
+          }
+        ],
+        "tab": "Changelog"
+      },
+      {
+        "groups": [
+          {
+            "group": "Common Questions \u0026 Troubleshooting",
+            "pages": [
+              "faq/common-issues-solutions/taskfile-not-detected",
+              "faq/common-issues-solutions/cli-flags-and-args",
+              "faq/common-issues-solutions/troubleshooting-task-execution-failures"
+            ]
+          },
+          {
+            "group": "Optimization, Integration, and Support",
+            "pages": [
+              "faq/optimization-integration-help/performance-optimizations",
+              "faq/optimization-integration-help/troubleshooting-integrations",
+              "faq/optimization-integration-help/support-community-contact"
+            ]
+          }
+        ],
+        "tab": "FAQ"
+      }
+    ]
+  },
+  "styling": {
+    "codeblocks": "dark",
+    "eyebrows": "breadcrumbs"
+  }
+}

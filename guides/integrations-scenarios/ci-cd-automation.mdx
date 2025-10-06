@@ -1,0 +1,140 @@
+---
+title: "Integrating Task with CI/CD Pipelines"
+description: "Follow practical steps to incorporate Task into continuous integration and delivery systems, streamline developer environments, and trigger automated builds and tests efficiently."
+---
+
+# Integrating Task with CI/CD Pipelines
+
+Streamlining your automation by integrating Task into continuous integration and continuous delivery (CI/CD) workflows unlocks the full potential of Task's flexible task execution and dependency management. By embedding Task into your CI/CD pipeline, you can trigger automated builds, tests, and deployments efficiently while leveraging Task’s expressive Taskfile syntax to maintain clarity and avoid duplication.
+
+This guide walks you through practical steps to incorporate Task into automated CI/CD systems, enhance developer environments, and manage complex workflows seamlessly.
+
+## Preparing Task for CI/CD Environments
+
+Before embedding Task in your CI/CD pipeline, ensure your Taskfiles and automation setup align with CI requirements. Typically, this involves verifying consistent behavior across environments, managing environment variables, and optimizing task runtime.
+
+A solid starting point is crafting Taskfiles that explicitly define dependencies and environment configurations while avoiding interactive prompts unless suppressed. Prefer specifying required variables with `requires` to avoid unexpected runtime failures, and use fingerprinting (`sources`, `generates`) to skip tasks when inputs are unchanged, saving build time.
+
+In your pipeline scripts, it is vital to call Task with the `--yes` (`-y`) flag or explicitly disable prompts to avoid blocking automated runs. Also, be aware that some tasks may rely on tools or binaries that need to be pre-installed or invoked as part of your Taskfile's commands.
+
+## Embedding Task in Pipeline Scripts
+
+Most CI/CD platforms such as GitHub Actions, GitLab CI, Jenkins, or CircleCI allow running shell commands during pipeline stages. You can invoke Task with the following patterns to execute tasks and manage arguments:
+
+```shell
+# Run default task
+task --yes
+
+# Run a specific task, passing any required variables
+task deploy --yes ENV=prod
+
+# Run a taskfile in a subdirectory or with a custom file
+task --taskfile ci/Taskfile.yml --yes build
+```
+
+Embedding these commands into your pipeline stage definitions lets you tightly couple your build or deployment logic with Task's automation.
+
+For example, in GitHub Actions workflow YAML:
+
+```yaml
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.20'
+      - name: Run Task build
+        run: task --yes build
+```
+
+This approach ensures that Task runs within the CI environment exactly as specified by your Taskfile, including any variables, environment configurations, or platform-specific constraints.
+
+## Managing Environment and Variables in CI
+
+Effective variable and environment management is crucial for reliable CI/CD integrations. Use Task's built-in mechanisms to inject variables securely and distinctly for CI/CD contexts.
+
+Consider defining variables that differ between developer environments and CI, using environment-specific `.env` files or conditional variable assignment with templating:
+
+```yaml
+vars:
+  ENV: '{{ default "local" .CI_ENVIRONMENT_NAME }}'
+
+env:
+  API_KEY: '{{ default "" .API_KEY }}'
+
+tasks:
+  deploy:
+    requires:
+      vars: [API_KEY]
+    cmds:
+      - ./deploy.sh --api-key={{.API_KEY}} --env={{.ENV}}
+```
+
+In your CI system, make sure to set environment variables such as `API_KEY` or `CI_ENVIRONMENT_NAME` as secrets or pipeline variables to be picked up automatically.
+
+Additionally, you can leverage the `dotenv` feature in Taskfiles to load environment variables from files checked into the repo or CI workspace.
+
+For enhanced debugging and transparency, use the `task --summary <task>` command to output task details without execution, providing clarity in logs or validation phases.
+
+<Tip>
+CI environments are often non-interactive, so always specify `--yes` or set prompts to avoid automation blocking. Define explicit `requires` clauses to fail early on missing critical configuration.
+</Tip>
+
+## Coordinating Complex Dependencies and Parallelism
+
+Modern CI/CD workflows often involve intricate task dependencies and parallel job execution. Task’s dependency and `run` control capabilities help you orchestrate complex flows efficiently.
+
+Use `deps` to declare prerequisite tasks that must complete before others, ensuring correctness and modularity. For instance, a `build` task may depend on a `lint` and `test` task:
+
+```yaml
+tasks:
+  build:
+    deps: [lint, test]
+    cmds:
+      - go build -o myapp
+
+  lint:
+    cmds:
+      - golangci-lint run
+
+  test:
+    cmds:
+      - go test ./...
+```
+
+Parallelism is inherent in dependencies; tasks listed in `deps` run concurrently, improving pipeline speed. Control over execution order within `cmds` is serial, allowing you to chain calls where needed.
+
+When invoking Task in CI, consider the pipeline’s native parallel job features combined with Task’s concurrency to optimize resource usage.
+
+You can use the `run` attribute to limit tasks to run once or under specific conditions, avoiding redundant work on repeated or conditional triggers.
+
+<Warning>
+Running multiple parallel tasks may increase resource consumption; ensure your CI pipeline agents or runners have the capacity to handle concurrent executions without degradation.
+</Warning>
+
+## Validating and Troubleshooting CI Integrations
+
+After embedding Task into your CI/CD pipeline, verify correct behavior through logs and test runs. Use the following tips to troubleshoot common pitfalls:
+
+- Confirm Task is installed and accessible in the CI environment.
+- Use `task --list` and `task --summary <task>` to validate task presence.
+- Ensure environment variables and secrets are correctly injected in CI.
+- Check that included Taskfiles and relative path references resolve correctly within the CI environment.
+- Use the `--dry` mode to preview commands without execution for debugging Taskfiles.
+- Watch output modes (`interleaved`, `group`, `prefixed`) to improve log readability in CI consoles.
+
+If the pipeline fails, consider reviewing cached states or `.task` directories if fingerprinting is enabled, to determine if cached results interfere with correctness.
+
+The [Integration Examples](/overview/integration-usecases/integration-examples) page and [Troubleshooting Guide](/getting-started/troubleshooting-quick-fixes/troubleshooting-common-problems) provide additional context on environment configuration and common issues.
+
+<Source url="https://github.com/go-task/task" paths={[{"path": "website/src/docs/guide.md", "range": "1-500"}]} />
+
+---
+
+This guide presents actionable steps to embed and maximize Task’s capability within CI/CD pipelines, aligning automation efforts with the modern DevOps ecosystem.
+
+
+

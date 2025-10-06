@@ -1,0 +1,59 @@
+---
+title: "How can I speed up my builds and optimize task execution?"
+description: "Explore practical techniques for improving build and execution times, such as leveraging concurrency, understanding up-to-date checks, and structuring tasks for efficiency. Tips include using parallel execution and caching strategies."
+---
+
+## Accelerating Builds and Optimizing Task Execution
+
+Improving task execution speed and reducing build times are essential for efficient automation workflows. This page helps you understand practical techniques within Task to make your builds faster and more responsive by utilizing concurrency, caching intelligently, and structuring your tasks for maximum efficiency. Whether you're managing simple tasks or complex pipelines, applying these strategies will help you achieve noticeable performance gains.
+
+## Leveraging Parallel Execution and Concurrency
+
+Task allows tasks within the same run to be executed in parallel, offering a significant opportunity to reduce overall execution time, especially when tasks are independent. By enabling the parallel mode (`WithParallel` option), you unlock concurrent task processing controlled by the `Concurrency` setting, which caps how many tasks run simultaneously. This balance prevents resource exhaustion while maximizing throughput.
+
+Using concurrency effectively involves configuring these parameters thoughtfully. For example, setting a concurrency level that matches your system's CPU capacity or build agents ensures that tasks run efficiently without overwhelming your environment. Additionally, concurrency semaphores gate task execution, managing parallelism transparently and reliably. 
+
+Understanding and applying parallel execution transforms workflows where multiple steps can proceed simultaneously, reducing wall-clock build time without sacrificing deterministic behavior.
+
+## Efficient Up-to-Date Checks and Caching
+
+Task implements caching and fingerprinting mechanisms to avoid unnecessary task execution when inputs and outputs have not changed. By configuring cache expiry (`WithCacheExpiryDuration`) and using built-in fingerprinting based on task sources and outputs, Task can quickly determine whether rerunning a task is needed.
+
+This up-to-date check mechanism saves time by skipping redundant commands. For example, if source files are unchanged and outputs are present and fresh, Task bypasses the execution. To ensure this operates optimally, structure your Taskfiles to specify accurate dependencies and outputs, and keep cache expiry aligned with build expectations.
+
+In scenarios involving remote taskfiles or downloaded resources, controlling cache invalidation and forced refresh (`WithDownload` and `WithForce` options) fine-tunes when Task fetches fresh content versus relying on cached copies, optimizing network usage and build speed.
+
+## Structuring Tasks for Optimal Performance
+
+How you compose your tasks within the Taskfile directly impacts build speed. Organizing tasks to minimize unnecessary dependencies and carefully considering task nesting reduces overhead. Avoid forcing all subtasks unnecessarily with `ForceAll`, unless truly needed, to let caching and fingerprints do their work effectively.
+
+Design tasks that are granular, with clear inputs and outputs, to enable Task to run only what it needs. Using the `Summary` mode can help you preview impacts before running tasks, which is useful during optimization.
+
+Avoid tightly coupled sequences where one task must always wait for another if they can safely run concurrently. Use platform filtering, matrices, and conditional execution (covered in related guides) to tailor task execution and prevent wasted effort on irrelevant platforms or configurations.
+
+## Best Practices and Common Pitfalls
+
+To succeed in speeding up your builds, keep in mind: 
+
+- Enable parallel execution where task independence allows it, but set `Concurrency` thoughtfully to match your system's capacity.
+- Exploit caching by defining clear inputs/outputs and use fingerprinting; avoid unnecessary forced runs unless debugging.
+- Use task dependencies to express necessary order but avoid over-dependency chains that serialize execution unnecessarily.
+- Monitor your Taskfile structure for opportunities to split large monolithic tasks into smaller reusable units.
+
+Be cautious with excessive verbosity (`Verbose`) combined with parallel execution as it may clutter logs—balance output configuration to maintain clarity.
+
+## Troubleshooting Performance Issues
+
+If builds are slower than expected, verify that parallelism is enabled and concurrency is correctly set. Check if caches are invalidated too frequently or if forced execution flags are unnecessarily used.
+
+Look for inadvertent tight dependencies that serialize tasks and reconsider your task graph for tasks that could run concurrently. Also ensure no external system bottlenecks, such as slow network or disk performance, impact your builds.
+
+When encountering issues with task execution timing or determinism, consult the logs with verbosity enabled and consider using the `Summary` mode to diagnose what tasks Task plans to run and why.
+
+For detailed insights into Task's execution orchestration and options available, see the core architecture and command-line reference.
+
+---
+
+For more on optimizing Task alongside CI/CD workflows, check [Integrating Task with CI/CD Pipelines](/guides/integrations-scenarios/ci-cd-automation) and the [Performance Tips and Optimizations guide](/guides/integrations-scenarios/performance-optimizations) for comprehensive strategies.
+
+<Source url="https://github.com/go-task/task" branch="main" paths={[{"path": "executor.go", "range": "1-189"},{"path": "concurrency.go", "range": "1-20"}]} />

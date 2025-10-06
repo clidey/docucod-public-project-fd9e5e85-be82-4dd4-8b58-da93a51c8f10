@@ -1,0 +1,162 @@
+---
+title: "How do I use CLI flags and pass variables to tasks?"
+description: "Learn the correct syntax for using command-line flags, passing variables, and leveraging advanced argument parsing with Task. This guide clarifies best practices for invoking tasks with parameters and dealing with double dash separators."
+---
+
+# How do I use CLI flags and pass variables to tasks?
+
+Understanding how to effectively use command-line flags and pass variables to tasks can unlock the full power of Task's automation capabilities. This guide demystifies the syntax for invoking tasks with parameters, explains how Task interprets CLI arguments including double dash `--` separators, and shares best practices for advanced argument parsing.
+
+## Command-Line Flags: Tailoring Task Execution
+
+Task provides a rich set of CLI flags that let you control task execution precisely. Flags can adjust behavior such as running tasks silently, forcing execution, setting working directories, or enabling verbose output. These flags override any environment variables or configuration files, ensuring immediate, command-specific control.
+
+For example, running a build task with verbose output and forcing execution despite being up-to-date would look like this:
+
+```shell
+$ task build --verbose --force
+```
+
+A few key commonly used flags include:
+
+- `-f, --force`: Forces a task to run regardless of its up-to-date status.
+- `-s, --silent`: Disables echoing of commands, making output quieter.
+- `-d, --dir <path>`: Changes the working directory for running tasks.
+- `-t, --taskfile <file>`: Specifies a custom Taskfile, instead of the default one.
+- `--`: Separates Task CLI flags from arguments passed to your commands or tasks.
+
+Using the double dash `--` is critical when you want to forward extra arguments directly to the commands executed by a task without Task interpreting them as its own flags.
+
+## Passing Variables and Arguments to Tasks
+
+Variables can be passed to tasks from the CLI to customize task behavior dynamically without modifying the Taskfile itself. Task parses arguments and recognizes variables based on a simple syntax.
+
+### Basic Variable Passing
+
+To set a variable when running a task, use the format:
+
+```shell
+$ task task-name VARIABLE=value
+```
+
+For example, if you have a task that greets a specific user:
+
+```yaml
+version: '3'
+tasks:
+  greet:
+    vars:
+      USER_NAME: '{{.USER_NAME | default "World"}}'
+    cmds:
+      - echo "Hello, {{.USER_NAME}}!"
+```
+
+Running the task with a variable:
+
+```shell
+$ task greet USER_NAME=Bob
+Hello, Bob!
+```
+
+Without specifying `USER_NAME`, it defaults to "World".
+
+### Multiple Variables and Interleaved Tasks
+
+You can pass multiple variables on the command line, even alongside multiple tasks:
+
+```shell
+$ task build ENV=production DEBUG=false test
+```
+
+Task correctly separates tasks (`build` and `test`) from variable assignments.
+
+### Handling Variables with Spaces
+
+If a variable value contains spaces, wrap the entire `VARIABLE=value` in quotes:
+
+```shell
+$ task deploy MESSAGE="Deploying to production now"
+```
+
+### Forwarding Extra Arguments With `--`
+
+Sometimes, you want to pass arbitrary arguments directly to a task's command without Task interpreting them as CLI flags or variables. The `--` separator tells Task to treat subsequent arguments as part of a special variable `.CLI_ARGS` passed to the task.
+
+For example:
+
+```shell
+$ task yarn -- install
+```
+
+This runs the `yarn` task, forwarding the argument `install` to it. Inside the Taskfile, you can access the passed arguments with the special `{{.CLI_ARGS}}` variable.
+
+```yaml
+tasks:
+  yarn:
+    cmds:
+      - yarn {{.CLI_ARGS}}
+```
+
+This pattern is extremely useful for wrapping commands or scripts that take variable arguments.
+
+### Wildcard Arguments for Dynamic Task Names
+
+Task supports wildcard syntax in task names using `*`. This allows task names to capture parameters directly from the invoked task string into the special `.MATCH` array (an array of string arguments).
+
+For instance:
+
+```yaml
+tasks:
+  start:*:*
+    vars:
+      SERVICE: '{{index .MATCH 0}}'
+      REPLICAS: '{{index .MATCH 1}}'
+    cmds:
+      - echo "Starting {{.SERVICE}} with {{.REPLICAS}} replicas"
+```
+
+Calling:
+
+```shell
+$ task start:api:3
+Starting api with 3 replicas
+```
+
+This approach helps you create flexible tasks parameterized by CLI input without defining many static tasks.
+
+## How Task Processes CLI Arguments
+
+Task splits CLI arguments into two groups:
+
+- Arguments before `--` are treated as tasks to run or variables to set globally.
+- Arguments after `--` are collected into `.CLI_ARGS` and `.CLI_ARGS_LIST` special variables to be forwarded to commands.
+
+Parsing distinguishes variable assignments (strings containing `=`) from task names.
+
+For example:
+
+```shell
+$ task build FOO=bar BAZ=qux deploy -- --force
+```
+
+Variables `FOO`=`bar` and `BAZ`=`qux` are set globally, then tasks `build` and `deploy` run. The `--force` after `--` is passed literally as part of `.CLI_ARGS` to tasks' commands.
+
+## Common Pitfalls and Best Practices
+
+When passing variables and flags on the CLI, be mindful of argument order. Variable assignments can appear before, between, or after task names; Task will collect variables globally.
+
+Avoid accidentally passing Task flags after `--` as they won't be interpreted by Task but sent to commands.
+
+If you want to avoid echoing commands, prefer the `--silent` flag or task-level `silent: true` rather than redirecting outputs manually.
+
+For complex parameter passing, consider using variable references or `ref` syntax inside Taskfiles for full type preservation.
+
+## Additional Resources and Links
+
+For a full list of CLI flags with examples, visit the [Command Line Interface Reference](/reference/cli/).
+
+Learn more about passing variables, advanced templating, and calling tasks dynamically in the [Defining Tasks, Variables, and Dependencies guide](/guides/core-workflows/tasks-vars-dependencies).
+
+Explore how to use the `--` separator and `.CLI_ARGS` in practice in the [Running and Validating Tasks guide](/getting-started/onboarding-essentials/run-and-validate).
+
+<Source url="https://github.com/go-task/task" branch="main" paths={[{"path": "args/args.go", "range": "1-53"}, {"path": "cmd/task/task.go", "range": "30-141"}, {"path": "internal/flags/flags.go", "range": "17-108"}, {"path": "website/src/docs/reference/cli.md", "range": "6-204"}]} />

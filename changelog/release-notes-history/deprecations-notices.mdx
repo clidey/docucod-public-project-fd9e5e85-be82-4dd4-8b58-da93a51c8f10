@@ -1,0 +1,70 @@
+---
+title: "Deprecations & Migration Notices"
+description: "Understand which Task features, options, or APIs are deprecated, with actionable steps or alternatives. Use this page to proactively adapt your Taskfiles and scripts before removal of deprecated behavior in future versions."
+---
+
+# Deprecations & Migration Notices
+
+As Task continues to grow and evolve, certain features, options, and APIs become outdated and are marked as deprecated. This page serves as your proactive guide for identifying those deprecated elements and provides clear, actionable steps to adapt your Taskfiles or workflows before these items are removed in future versions. Understanding and applying these migration notices ensures your automation remains stable, maintainable, and aligned with the latest Task capabilities.
+
+## Why Track Deprecations?
+
+In the lifecycle of Task, deprecations signal features that are no longer recommended for use due to replacement by better alternatives, architectural changes, or removal of obsolete behaviors. While deprecated features continue to function for now, relying on them risks future breakage as they will eventually be removed. Staying informed about deprecations empowers you to update your Taskfiles incrementally without disruption, helping maintain compatibility with upcoming releases and take advantage of improved features.
+
+This page specifically focuses on directives related to Task features, options, or APIs that have been officially deprecated, paired with migration advice tailored to each case.
+
+## Key Deprecations and Migration Guidance
+
+### Taskfile Version 2 Schema Removal
+
+The older Taskfile version 2 schema has been fully deprecated and removed as of Task v3.34.0. If your Taskfiles still use `version: "2"` at the top or include `Taskvar.yml` files, these must be migrated to the version 3 schema to continue working with modern Task releases.
+
+Migrating to version 3 involves updating your Taskfile structure to conform to the new schema specifications, which support richer features like includes, templating, and improved variable handling. This change eliminates legacy code paths and aligns your automation with Task’s forward compatibility model.
+
+For detailed differences and a migration walkthrough, refer to the [Version 2 Schema Deprecation Notice](https://taskfile.dev/deprecations/version-2-schema).
+
+### Completion Scripts Direct Use Deprecated
+
+Direct usage of shell completion scripts stored in Task’s Git repository `completion/` directory is deprecated. These scripts may be removed or relocated without warning, which could break your shell configuration.
+
+To future-proof your environment, switch to the new completion setup method. This involves generating shell completions dynamically using Task’s CLI with the `--completion` flag, ensuring you always have access to up-to-date and compatible completion scripts.
+
+See the [Installation Guide on Setting up Completions](/docs/installation#setup-completions) for the recommended approach and instructions.
+
+### Experimental Features and Breaking Changes Management
+
+Task employs a gradual adoption model for breaking changes by introducing experimental features behind explicit feature flags. This enables a smoother transition by allowing users to opt-in to cutting-edge behaviors and provide feedback before those features become defaults in major releases.
+
+Users are encouraged to monitor the [Experiments documentation](https://taskfile.dev/experiments) and consult the [Breaking Changes & Upgrade Guide](/changelog/release-notes-history/breaking-changes-upgrade) to understand how deprecation notices relate to these experimental flags and how to migrate accordingly.
+
+A prominent example is the `--force` flag behavior change introduced in the Gentle Force experiment, which modifies how force execution applies to dependent tasks. To maintain legacy behavior or migrate, consult the specific experiment’s migration notes.
+
+## Best Practices for Managing Deprecated Features
+
+Proactively check your Taskfiles regularly against the latest deprecations notices. While Task supports deprecated features for a time, removing them prepares your automation for future-proof operation and reduces technical debt.
+
+When migrating:
+
+- Validate your Taskfiles with the latest version of Task to catch schema or configuration issues.
+- Use available migration guides linked in this documentation.
+- Transition incrementally to avoid large-scale refactors.
+- Take advantage of enhanced capabilities introduced with newer Task versions.
+
+By following these practices, you will ensure a reliable and maintainable automation workflow.
+
+## Where to Find More Information
+
+This page complements other documentation focused on upgrade paths and breaking changes:
+
+- [Breaking Changes & Upgrade Guide](/changelog/release-notes-history/breaking-changes-upgrade) details major migrations and incompatibilities.
+- [Experiments Documentation](https://taskfile.dev/experiments) explains current experimental flags and their migration status.
+- [Version 2 Schema Deprecation Notice](https://taskfile.dev/deprecations/version-2-schema) offers a focused walkthrough for migrating Taskfile schemas.
+- The [CLI Reference](/reference/cli/) and [Getting Started Guides](/getting-started/onboarding-essentials) help understand new feature usage.
+
+Taking the time to review these resources and update your Taskfiles accordingly will safeguard your automation against future disruptions and unlock new staging capabilities.
+
+<Source url="https://github.com/go-task/task" paths={[{"path": "website/src/docs/deprecations/version-2-schema.md", "range": "1-45"},{"path": "website/src/docs/deprecations/completion-scripts.md", "range": "1-22"},{"path": "website/src/blog/task-in-2023.md", "range": "1-86"}]} />
+
+---
+
+For additional examples of deprecated feature migration or experimentation, visit the [Experiments Index](https://taskfile.dev/experiments) and [Changelog & Release Notes](https://taskfile.dev/changelog).

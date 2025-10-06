@@ -1,0 +1,207 @@
+---
+title: "Defining Tasks, Variables, and Dependencies"
+description: "A hands-on guide for authoring more advanced Taskfiles with reusable variables and explicit dependencies. This tutorial demonstrates how to modularize automation, build flexible workflows, and manage environment variable integration."
+---
+
+# Defining Tasks, Variables, and Dependencies
+
+Crafting effective Taskfiles is the foundation for automating your workflows with precision and flexibility. This guide dives into defining tasks enriched with reusable variables and establishing explicit dependencies—enabling you to modularize automation and streamline orchestration. By leveraging these elements, you will empower your Taskfiles to be clearer, maintainable, and adaptable across diverse environments.
+
+## Building Reusable Variables for Dynamic Tasks
+
+Variables in Taskfiles unlock powerful dynamic behavior by enabling parameterization of commands and settings. They support simple values like strings and booleans, complex types such as lists and maps, and even dynamic values resolved at runtime via shell commands.
+
+You can define variables globally at the root level or scoped locally within tasks. This layered approach facilitates default values, task-specific overrides, and parameter passing between tasks.
+
+For example, to define a greeting message globally:
+
+```yaml
+version: '3'
+
+vars:
+  GREETING: 'Hello from Taskfile!'
+
+tasks:
+  greet:
+    cmds:
+      - echo "{{.GREETING}}"
+```
+
+Here, the `{{.GREETING}}` template expression inside the task's command dynamically injects the variable's value when the task runs. This structure means you can effortlessly change greetings without modifying individual tasks.
+
+### Task-Level Variables Elevate Flexibility
+
+You might need specialized variables per task that do not leak across tasks. Defining `vars:` inside a task creates variables specific to that task. For instance:
+
+```yaml
+tasks:
+  deploy:
+    vars:
+      ENVIRONMENT: production
+    cmds:
+      - echo "Deploying to {{.ENVIRONMENT}}"
+```
+
+This scope control ensures tasks remain self-contained and predictable.
+
+### Dynamic Variables: Command Evaluation on the Fly
+
+Task supports dynamic variables, where the value is computed from the output of a shell command at runtime. This allows pulling in data such as git commits, timestamps, or environment-specific information.
+
+```yaml
+tasks:
+  build:
+    vars:
+      GIT_COMMIT:
+        sh: git log -n 1 --format=%h
+    cmds:
+      - go build -ldflags="-X main.Version={{.GIT_COMMIT}}" main.go
+```
+
+When the `build` task runs, Task executes the shell command under `sh`, trims trailing newlines, and assigns its output to `.GIT_COMMIT` for interpolation.
+
+### References Avoid Type Conversion Pitfalls
+
+Passing variables as strings can sometimes break templating logic especially when working with lists or maps. Instead, use `ref` to pass variables by reference and preserve their original types.
+
+Consider this example that loops over a list properly by using a reference:
+
+```yaml
+tasks:
+  foo:
+    vars:
+      LIST: [foo, bar, baz]
+    cmds:
+      - task: bar
+        vars:
+          ITEMS:
+            ref: .LIST
+
+  bar:
+    cmds:
+      - echo "First item is {{index .ITEMS 0}}"
+```
+
+This technique ensures data integrity between tasks and avoids unintended string coercion.
+
+## Declaring Explicit Dependencies for Order and Reusability
+
+Dependencies (`deps`) express relationships between tasks, instructing Task to execute prerequisite tasks before the dependent one. This becomes essential to modularize your workflows, ensure correct ordering, and optimize execution.
+
+For example, the following declares `assets` as a dependency of `build`:
+
+```yaml
+tasks:
+  build:
+    deps: [assets]
+    cmds:
+      - go build -v -i main.go
+
+  assets:
+    cmds:
+      - esbuild --bundle --minify css/index.css > public/bundle.css
+```
+
+Running `task build` guarantees that `assets` completes before the build commands.
+
+### Dependencies Run Concurrently, So Avoid Inter-Dependencies
+
+Dependencies run in parallel by default to maximize efficiency. Because of this, avoid creating dependencies of dependencies that rely on each other to run serially. Instead, use command-level calling to enforce sequential order.
+
+For example:
+
+```yaml
+tasks:
+  deploy:
+    cmds:
+      - task: build
+      - task: test
+      - echo "Deploying now"
+```
+
+Here, `build` and `test` run one after another in order.
+
+### Passing Variables and Silent Mode in Dependencies
+
+You can tailor dependencies by passing variables or toggling silent mode. This flexibility allows dependency reuse with context-specific overrides:
+
+```yaml
+tasks:
+  prepare:
+    vars:
+      VERSION: 'release'
+    cmds:
+      - echo "Preparing version {{.VERSION}}"
+
+  deploy:
+    deps:
+      - task: prepare
+        vars:
+          VERSION: 'beta'
+        silent: true
+    cmds:
+      - echo "Deploying"
+```
+
+In this snippet, the `prepare` task executes with a different variable context and suppresses command echoing.
+
+## Advanced Dependency Use with Expressions and Namespaces
+
+Tasks can depend on namespaced tasks defined in included Taskfiles, allowing cross-project modularity. Use the notation `namespace:task` to reference them.
+
+You can also express dependencies as objects to pass variables or enable silent execution individually:
+
+```yaml
+tasks:
+  default:
+    deps:
+      - task: docs:build
+        vars: { LANG: en }
+      - task: lint
+        silent: true
+```
+
+This expands your ability to compose complex workflows that span multiple Taskfiles.
+
+### Understanding Dependency Merging and Copying
+
+Internally, Task merges dependencies and variables during Taskfile compilation to create a unified execution plan. This merging respects namespaces, variable scopes, and silent flags, ensuring expected behavior. The `DeepCopy` and `Merge` implementations in the AST layer handle these operations conservatively to prevent conflicts and maintain consistency.<Source url="https://github.com/go-task/task" paths={[{"path": "taskfile/ast/task.go", "range": "20-132"},{"path": "taskfile/ast/dep.go", "range": "10-56"}]} />
+
+## Practical Tips for Success
+
+Adopt these best practices to avoid common pitfalls:
+
+- Define variables at the narrowest scope necessary to reduce complexity.
+- Pass variables via `vars` instead of templating strings to maintain data types.
+- Avoid creating dependencies that depend on each other to prevent race conditions.
+- Use namespaces and aliases to organize large Taskfiles or included Taskfiles.
+- Use silent mode on noisy dependencies to keep output clean.
+- Use dynamic variables sparingly to prevent performance issues due to shell command calls.
+
+## Integrating Environment Variables
+
+Tasks can also incorporate environment variables via the `env` keyword at global or task level, overlapping but distinct from `vars`. Environment variables are ultimately accessible in shell commands and can be templated in a similar manner. Including `.env` files using the `dotenv` keyword loads environment definitions into tasks.
+
+Example of environment usage:
+
+```yaml
+env:
+  API_ENDPOINT: https://api.example.com
+
+tasks:
+  call-api:
+    cmds:
+      - curl $API_ENDPOINT
+```
+
+Explicit environment management paired with variables can make tasks portable across machines and contexts.
+
+## Next Steps
+
+Having mastered defining tasks, variables, and dependencies, you can now explore:
+
+- [Best Practices for Taskfiles and Environment Management](/guides/core-workflows/taskfile-environment-best-practices) to scale your automation safely.
+- [Including Other Taskfiles and Namespacing](/guide#including-other-taskfiles) for modular design.
+- The [Templating Reference](/reference/templating) for advanced variable interpolation techniques.
+
+This knowledge will empower you to write robust Taskfiles that model sophisticated workflows reliably and efficiently.

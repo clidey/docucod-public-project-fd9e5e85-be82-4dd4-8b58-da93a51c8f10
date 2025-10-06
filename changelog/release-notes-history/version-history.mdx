@@ -1,0 +1,63 @@
+---
+title: "Version History & Highlights"
+description: "Review a chronological overview of Task releases, spotlighting key features, enhancements, and resolved issues. This page helps users understand the development pace and feature adoption timeline, giving essential context for selecting or upgrading Task versions."
+---
+
+# Version History & Highlights
+
+The Version History & Highlights page offers a chronological narrative of Task's evolution through its releases. It serves as a vital resource for users aiming to understand how the product has matured, highlighting major feature introductions, enhancements, fixes, and quality-of-life improvements. By reviewing this timeline, users gain valuable context on when critical capabilities became available and can better assess which version suits their needs or when to upgrade.
+
+Understanding the development pace and feature adoption timeline is essential when managing project dependencies or onboarding teams. This page distills complex release information into clear, actionable insights to help users navigate the versioning landscape confidently.
+
+## Latest Release Summary
+
+Recent releases have focused on enhancing compatibility, expanding configuration flexibility, and improving user experience. Notably, the introduction of built-in core utilities for Windows significantly simplifies cross-platform usage by providing essential commands like `cp` and `mkdir` out of the box. Additionally, global configuration with `.taskrc.yml` files elevates customization options across environments. Performance and stability have been systematically improved through better watcher implementations and refined fingerprinting mechanisms, making automation workflows smoother and more predictable.
+
+Feature rollouts also embraced modern development needs, including nightly builds for early testing, enhanced JSON outputs for integrations, and richer templating functions to empower more dynamic Taskfiles.
+
+## Breaking Changes and Migration Guidance
+
+While the Task development team prioritizes stability, certain releases introduced breaking changes to align with evolving design goals or to correct critical issues. For instance, the upgrade from MD5 to XXH3 hashing for content checksums required users relying on checksum stability to be aware of cache invalidation when updating. There have also been removals of deprecated schema versions and certain experimental flags, mandating users to update their Taskfiles accordingly.
+
+When encountering breaking changes, users should carefully consult the associated release notes to adjust Taskfiles, such as updating version declarations or revising usage of removed properties. The documentation often provides CLI migration commands or examples to ease the transition. Always ensure running with a compatible Task version matched to your Taskfile schema version to avoid execution errors.
+
+<Source url="https://github.com/go-task/task" paths={[{"path": "CHANGELOG.md", "range": "1-800"}]} />
+
+## Notable Fixes & Improvements
+
+Recent updates have resolved significant bugs and introduced improvements that increase reliability and developer efficiency. Key highlights include enhanced watcher performance by switching to OS-native file notifications, fixing environment variable scoping issues in included Taskfiles, and addressing edge cases in templating with dynamic variables. Completion scripts for shells like ZSH and PowerShell have been refined for accuracy and usability, reducing friction in interactive usage.
+
+The fingerprinting logic was optimized to better handle wildcards and skip unnecessary computations, speeding up execution especially in large repositories. Furthermore, the addition of new template functions such as `uuid`, `randInt`, and YAML converters expands the expressive power of Taskfiles, facilitating complex automation.
+
+Windows users benefit from integrated core utilities, removing previous manual setup overhead. These cumulative enhancements create a more robust and user-friendly experience across platforms.
+
+## Release History Overview
+
+- **v3.45.4 (2025-09-17):** Fixed bugs with cache expiry definition and recursive `.taskrc.yml` file loading.
+- **v3.45.3 (2025-09-15):** Deployed Windows core utilities, new website launch with VitePress, begun nightly builds, and added global config file support.
+- **v3.44.1 (2025-07-23):** Internal tasks hidden from suggestions; ARM install support fixes; Taskfile path handling improved.
+- **v3.44.0 (2025-06-08):** Added templating functions and checksum pinning for includes.
+- **v3.43.1 (2025-04-21):** Switched watcher implementation to `fsnotify` for efficiency; multi-task wildcard matching introduced.
+- **v3.40.0 (2024-11-05):** Added `TASK_OFFLINE` environment variable; Git repository remote Taskfile support enhanced.
+- **v3.39.0 (2024-09-07):** Environment precedence experiment started; new special variables `EXIT_CODE` and `ALIAS`.
+- **v3.38.0 (2024-06-30):** Colored prefixes by default; references broadly available; remote Taskfile caching improved.
+- **v3.37.0 (2024-05-08):** Introduced Any Variables experiment; refactored Taskfile parsing using Directed Acyclic Graph (DAG).
+- **v3.36.0 (2024-04-08):** Looping over dependencies enabled; remote Taskfile entrypoints supported.
+- **v3.35.0 (2024-02-28):** Wildcards in task names; piping Taskfiles from stdin.
+
+This sampling demonstrates consistent enhancement and responsiveness to community needs with each release. For a full list and details of all versions, please consult the official changelog linked below.
+
+[Full Changelog Repository](https://github.com/go-task/task/blob/main/CHANGELOG.md)
+
+## Navigating Version Choices
+
+When selecting a version of Task to use, consider your required feature set and platform compatibility. Early adoption of features like remote Taskfiles, matrix loops, or advanced templating functions requires relatively recent versions. Conversely, legacy or constrained environments may benefit from the stability of vetted previous versions.
+
+Always specify the minimum required Task version precisely when authoring Taskfiles via the `version` attribute to prevent accidental incompatibilities. This practice ensures that users receive proactive prompts to upgrade when necessary. For more on Taskfile schema versions and compatibility, see the [Taskfile Versions guidance](/website/src/docs/taskfile-versions.md).
+
+Upgrade when benefit outweighs migration cost, keeping in mind the performance improvements, new features, and fixed bugs documented here will enhance your automation experience.
+
+
+---
+
+This page serves as your authoritative companion to Task’s evolution, distilling the progression of capabilities and fixes into an accessible chronology to empower confident versioning and upgrades.

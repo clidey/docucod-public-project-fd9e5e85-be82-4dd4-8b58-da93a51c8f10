@@ -1,0 +1,117 @@
+---
+title: "Authoring Multi-Platform Taskfiles"
+description: "Learn how to create Taskfiles that adapt to different operating systems and architectures, ensuring cross-platform reproducibility for your workflows. Covers platform filtering and portable task design."
+---
+
+# Authoring Multi-Platform Taskfiles
+
+Creating Taskfiles that run reliably across different operating systems and processor architectures is essential for maintaining consistent automation in diverse environments. This guide teaches you how to craft Taskfiles that adapt intelligently to various platforms, helping you avoid failures, redundant task definitions, and non-portable scripts.
+
+Task’s platform filtering enables your tasks to conditionally run only on platforms that match specified criteria, such as Windows, Linux, macOS, or particular CPU architectures like amd64 or arm64. By leveraging this feature, you can tailor commands and workflows for platform-specific needs within a single Taskfile.
+
+Expect to spend a moderate amount of time understanding platform syntax and configuring per-task restrictions. Once set up, your workflows become robust and future-proof across cross-platform teams and CI/CD environments.
+
+## Understanding Platform Filtering
+
+Platform filtering allows you to specify which operating systems (OS) and CPU architectures a particular task or command supports. When you declare platform restrictions, Task skips the task or command if the running system does not meet the criteria, preventing errors from incompatible commands.
+
+Platform values conform to the Go language definitions of [`GOOS`](https://github.com/golang/go/blob/master/src/internal/syslist/syslist.go#L20) and [`GOARCH`](https://github.com/golang/go/blob/master/src/internal/syslist/syslist.go#L62). Valid OS values include `windows`, `linux`, `darwin` (for macOS), and others. Architectures include `amd64`, `arm64`, `386`, and more.
+
+You can specify these values in one of three ways within a task:
+
+- Just the OS (e.g., `windows`) to run on all architectures of that OS.
+- Just the architecture (e.g., `amd64`) regardless of OS.
+- A combined OS and architecture (`linux/amd64`).
+
+When these are set, Task checks the current system and runs the task only if matched.
+
+```yaml
+version: '3'
+tasks:
+  build-windows:
+    platforms: [windows]
+    cmds:
+      - echo "Build for Windows"
+
+  build-linux-amd64:
+    platforms: [linux/amd64]
+    cmds:
+      - echo "Build for Linux amd64"
+
+  build-any-amd64:
+    platforms: [amd64]
+    cmds:
+      - echo "Build for any amd64 architecture"
+```
+
+## Writing Platform-Conditional Commands
+
+Platform restrictions aren’t limited to entire tasks—you can apply them to individual commands within a task’s `cmds:` list. This granular control means you can have commands that run only on Windows alongside others that run only on Linux within the same task.
+
+Here’s how to configure commands conditionally:
+
+```yaml
+tasks:
+  example:
+    cmds:
+      - cmd: echo "This runs everywhere"
+      - cmd: echo "This runs only on Windows"
+        platforms: [windows]
+      - cmd: echo "Only for Linux amd64"
+        platforms: [linux/amd64]
+```
+
+This flexibility lets you combine platform-specific steps into composite tasks without duplication.
+
+## Designing Portable Tasks
+
+To maximize reuse and portability, follow these practices:
+
+- Use platform filtering to isolate OS/arch-specific logic.
+- Avoid hardcoding file paths, delimiters, or shell commands that work only on one OS.
+- Prefer environment variables and templating to adapt paths and commands dynamically.
+- Leverage [matrix and loops](https://taskfile.dev/guides/advanced-patterns/matrix-and-for-loops) when building multi-platform test or build pipelines.
+- Encapsulate platform-specific tasks within included namespaces, if desirable.
+
+For example, a build task could call different subtasks based on platform:
+
+```yaml
+tasks:
+  build:
+    deps:
+      - build-windows
+      - build-linux
+
+  build-windows:
+    platforms: [windows]
+    cmds:
+      - echo "Building for Windows"
+
+  build-linux:
+    platforms: [linux]
+    cmds:
+      - echo "Building for Linux"
+```
+
+## Common Pitfalls and Troubleshooting
+
+Although platform filtering is powerful, be aware of some common issues:
+
+- **Incorrect Platform Strings**: Misspelled OS or architecture values will cause parse errors. Always use valid platform identifiers (`windows`, `linux`, `darwin`, `amd64`, `arm64`).
+- **Multiple Architectures in One Entry**: Platform strings support one OS and optionally one architecture. Combining multiple OS or arch values in a single string (e.g., `windows/amd64/linux`) is invalid.
+- **Skipping Tasks Silently**: Tasks or commands skipped due to platform mismatch may cause confusion. Use task descriptions or logging to clarify conditional execution.
+- **Included Taskfiles Must Match Version**: When including Taskfiles that contain platform conditions, ensure these included files use the same schema version to avoid incompatibility.<br /><Source url="https://github.com/go-task/task" paths={[{"path": "taskfile/ast/platforms.go", "range": "1-64"}]} />
+
+## Preview & Verify Platform-Specific Tasks
+
+To test that your platform conditions evaluate correctly, use the CLI to list tasks and run them on target platforms. Simulate different environments by running Task on actual OS/architecture combinations or with containerized emulation.
+
+Remember that included tasks inherit platform restrictions, so verify the entire namespace is available as expected.
+
+## Moving Forward
+
+Mastering multi-platform Taskfiles empowers you to maintain a single source of automation truth that runs consistently anywhere. Once you’re comfortable with platform filtering, explore advanced patterns like [matrix expansions](https://taskfile.dev/guides/advanced-patterns/matrix-and-for-loops) and [preconditions](https://taskfile.dev/guides/advanced-patterns/preconditions-requires-prompts) for even finer control.
+
+For further details, see the comprehensive [Taskfile Schema Reference](https://taskfile.dev/reference/schema) and the [Platform Filtering section](https://taskfile.dev/concepts/advanced-control-and-guardrails/platforms-matrix-and-conditional-execution) in Concepts.
+
+You may also want to review related guides on [Taskfile Includes and Composition](/concepts/extensibility-variables-integration/includes-and-taskfile-composition) to modularize your platform-aware workflows.

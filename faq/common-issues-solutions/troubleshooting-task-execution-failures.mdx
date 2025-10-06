@@ -1,0 +1,76 @@
+---
+title: "Task execution fails or doesn't behave as expected—what should I check?"
+description: "Find a checklist of common causes for task failures, including syntax issues, unmet preconditions, required variables, platform mismatches, and execution errors. Includes tips for debugging, using verbose logging, and identifying YAML or environment configuration problems."
+---
+
+## Troubleshooting Task Execution Failures: What to Check
+
+When a task fails to run or does not behave as expected in Task, several factors could be at play. This guide helps you identify common pitfalls and provides clear directions to isolate and solve issues effectively. Whether the problem stems from syntax errors, unmet environmental conditions, or platform mismatches, understanding the failure modes enables quicker resolution and smoother automation workflows.
+
+### Common Causes of Task Failures
+
+Many task execution issues arise from misconfigurations or environment-related constraints. First, ensure your Taskfile is syntactically valid and properly parsed. YAML errors or schema violations often cause tasks not to load or behave unpredictably. If the task itself is not found, verify the task name for typos or namespace conflicts. Task names must be unique and match exactly, otherwise errors such as `task: Task "<name>" does not exist` or conflicts with multiple matching tasks will occur.
+
+Unmet task preconditions or missing required variables frequently interrupt execution. Preconditions are shell commands defined in your Taskfile that must succeed before the main commands run; failure here usually reflects the environment is not set up as expected. Required variables enforced by `requires` must be provided and valid for the task to proceed. If variables are missing or have disallowed values, Task cancels execution and informs you about the missing or invalid entries.
+
+Platform mismatches can silently cause tasks not to run or skip commands if platform filters do not match the host OS or architecture, so confirm that tasks and commands are targeted appropriately. When using included Taskfiles, ensure there are no cyclic dependencies or task naming conflicts that might prevent resolution.
+
+Lastly, runtime errors within the task's commands, such as shell script exit codes, permission issues, or environment variable misconfigurations, can cause task failures. Forced execution flags may override some status checks but do not mask fundamental errors.
+
+### Diagnosing Failures with Verbose Logging and Prompts
+
+Enabling verbose mode (`--verbose` or `-v`) enhances your insight into task execution, revealing details on command invocation, precondition checks, and variable states. It helps you trace failure points and understand the exact reason a task stopped. Use verbose output in combination with careful inspection of error messages.
+
+If your task includes interactive prompts, running in non-terminal environments or without explicit confirmation flags may silently cancel execution. Use the `--yes` (`-y`) flag to bypass prompts in automated contexts, or verify your environment supports terminal input.
+
+### Checking YAML Syntax and Environment Configuration
+
+Verify your Taskfile YAML syntax with external linters or YAML validators. Task produces detailed decode errors pinpointing lines and columns where parsing failed, which aids in correcting malformed Taskfiles. Incorrect indentation, unsupported data types, or invalid keys often lead to `TaskfileInvalidError` or `TaskfileDecodeError` messages.
+
+Ensure environment variables referenced in the Taskfile or tasks are correctly set in your system or shells. Task merges OS environment variables with Taskfile and task-specific vars, so consider variable precedence and inheritance rules to confirm intended values are available during execution.
+
+### Avoiding Cyclic Dependencies and Infinite Loops
+
+Cyclic includes or recursive calls between tasks cause Task to abort execution when call limits are exceeded to prevent infinite loops. Look for errors indicating maximum task call limits being surpassed, and analyze your Taskfile includes and dependencies to break cycles.
+
+### Summary Checklist:
+- Confirm the exact task name matches and that no conflicts exist.
+- Check task preconditions are met and that required variables are supplied and valid.
+- Validate YAML syntax and Taskfile schema compliance.
+- Use verbose logging for detailed execution traces.
+- Ensure environment variables are set and accessible.
+- Confirm platform filters align with your host OS/architecture.
+- Prevent include cycles and infinite task call chains.
+- Handle prompts properly in non-interactive or CI environments with confirmation flags.
+
+<Tip>
+Consider starting with `task --verbose` or `task -v` to get comprehensive output that highlights where a failure occurs and what conditions failed. This often provides the quickest insight without manual debugging.
+</Tip>
+
+<Warning>
+Avoid silent failures by ensuring that all required variables and preconditions clearly communicate missing or invalid states. Missing these checks can lead to confusing behavior and wasted time troubleshooting.
+</Warning>
+
+### Troubleshooting Common Error Types
+
+<AccordionGroup title="Error Categories and What to Check">
+<Accordion title="Task Not Found">
+This error indicates the task name you specified does not exist in your Taskfile or resolved Taskfiles. Review the task name for typos, verify namespaces if using includes, and check for alias conflicts.
+</Accordion>
+<Accordion title="Task Run Error (Non-zero Exit) Output">
+When a command in a task fails and returns a non-zero exit code, Task reports this error. Inspect the command's output, verify scripts or shell commands, and check for permission or environment issues.
+</Accordion>
+<Accordion title="Precondition Failures">
+If a task's precondition shell command does not succeed, the task will not run. This usually means required system dependencies or environment setups are missing or incorrect.
+</Accordion>
+<Accordion title="Missing or Disallowed Variables">
+Tasks with required variables that are unsupplied or contain invalid values will cancel. Check `requires` entries in your Taskfile and ensure all necessary variables are passed or set.
+</Accordion>
+<Accordion title="Task Name Conflicts or Infinite Call Loops">
+Duplicate task names or aliases across includes cause conflicts, and recursive task calls beyond allowed limits trigger failures. Refactor Taskfiles to avoid overlap and cyclic dependencies.
+</Accordion>
+</AccordionGroup>
+
+For a more comprehensive understanding of specific error codes and messages, please refer to the [Task Error Handling Reference](/concepts/core-architecture/execution-flow-and-architecture#error-reporting) and the [Preconditions and Requires Guide](/guides/advanced-patterns/preconditions-requires-prompts).
+
+<Source url="https://github.com/go-task/task" branch="main" paths={[{"path": "errors/errors_task.go", "range": "1-143"}]} />
