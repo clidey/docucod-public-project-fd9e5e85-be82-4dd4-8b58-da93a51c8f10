@@ -1,0 +1,119 @@
+---
+title: "Configuration: Your First Taskfile"
+description: "Set up your first Taskfile (YAML-based) and understand the minimum requirements for a valid configuration. This page explains the structure and typical location of Taskfiles, as well as how to initialize them and add basic tasks, enabling fast transition from install to actionable use."
+---
+
+# Configuration: Your First Taskfile
+
+Setting up your first Taskfile is the essential next step after installing Task. This configuration file, written in YAML, defines your automation tasks, variables, and their relationships. Understanding the minimum requirements and structure of a valid Taskfile will enable you to quickly move from installation to running actionable tasks.
+
+## Understanding the Taskfile Structure and Location
+
+A Taskfile is conventionally named `Taskfile.yml` but supports several variants (e.g., `taskfile.yaml`, `Taskfile.dist.yml`). Task automatically detects the Taskfile in the current working directory or traverses parent directories if none exists locally. You can specify a custom Taskfile path using the `--taskfile` flag or point to a different directory with `--dir`. This flexibility lets you organize your automation in ways that best suit your project structure.
+
+At its core, a Taskfile must declare a schema version, typically `version: '3'`. This version ensures compatibility with Task's features and parsing engine. The main building blocks inside the file include `vars` for global variables, `env` for global environment variables, and `tasks` which define individual automation steps.
+
+A minimal valid Taskfile looks like this:
+
+```yaml
+version: '3'
+
+tasks:
+  default:
+    cmds:
+      - echo "Hello from your first taskfile!"
+```
+
+The `default` task is special: if you run `task` without arguments, Task executes this task automatically, making it a natural entry point for your automation.
+
+## Initializing a Taskfile and Adding Your First Tasks
+
+If you haven’t yet created a Taskfile, the simplest way is to use the `--init` flag:
+
+```shell
+task --init
+```
+
+This command creates a default Taskfile with a basic structure including a `default` task and an example variable. You can also create a Taskfile in a specific directory or with a custom file name:
+
+```shell
+task --init ./subdirectory
+
+# or
+
+task --init CustomFile.yml
+```
+
+Once initialized, you can edit your Taskfile to add tasks. Tasks consist of commands (`cmds`) you wish to run. For example, to add a `build` task to compile a Go program:
+
+```yaml
+tasks:
+  default:
+    cmds:
+      - echo "Starting build"
+
+  build:
+    desc: Build the main application
+    cmds:
+      - go build ./cmd/main.go
+```
+
+Each task may carry metadata like `desc` to describe its purpose, which helps when listing tasks with `task --list`.
+
+### Using Variables and Outputs
+
+Variables (`vars`) can be declared globally or at the task level and referenced within commands using `{{.VARIABLE_NAME}}` syntax. Task supports dynamic variables with shell command output, variable references, and maps to model complex inputs:
+
+```yaml
+vars:
+  GREETING: Hello
+
+tasks:
+  greet:
+    cmds:
+      - echo "{{.GREETING}}, World!"
+```
+
+This makes your Taskfile highly reusable and adaptable across environments and workflows.
+
+## Best Practices for Taskfile Configuration
+
+Organize your Taskfile logically, keeping related tasks grouped and using clear names and descriptions. Make use of:
+
+- The `includes` key to modularize your Taskfiles and reuse tasks across projects
+- The `env` section to define environment variables common to all tasks
+- The `silent` option at the task or global level to control command output verbosity
+
+When setting `dir` on tasks, Task automatically creates the directory if it doesn't exist, enabling isolated task execution environments.
+
+Avoid common pitfalls like naming conflicts when using `flatten` includes, or including `.env` keys inside included Taskfiles which are currently unsupported.
+
+## Validating Your Taskfile
+
+Task validates your Taskfile syntax and schema version on load. Errors usually point out incorrect YAML structure, missing required keys, or unsupported features for the version. Use `task --list` to verify tasks are recognized correctly.
+
+Run a simple task like `default` to ensure your Taskfile executes:
+
+```shell
+task default
+```
+
+A successful run shows your defined output, confirming the Taskfile is operational.
+
+<Tip>
+Remember that the latest Taskfile schema version is `3`. Always specify this explicitly for compatibility and feature access.
+</Tip>
+
+## Moving Forward from Your First Taskfile
+
+After mastering this initial configuration, you can explore adding variable references, dependencies between tasks, conditional execution, and more complex features like task matrices, preconditions, and status checks.
+
+To deepen your understanding, check out these related topics:
+
+- [Taskfile Schema Reference](/reference/schema) for detailed options and syntax
+- [Defining Tasks, Variables, and Dependencies](/guides/core-workflows/tasks-vars-dependencies) for common patterns
+- [Including Other Taskfiles](/guides/core-workflows/taskfile-environment-best-practices#including-other-taskfiles) for modularization and scalability
+
+With a solid Taskfile in place, you will unlock the full potential of Task’s automation powers.
+
+<Source url="https://github.com/go-task/task" branch="main" paths={[{"path": "cmd/task/task.go", "range": "20-140"}, {"path": "taskfile/ast/taskfile.go", "range": "10-80"}]} />
